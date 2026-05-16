@@ -782,8 +782,6 @@
                 for (const pk in res.friendship_statuses) {
                   const status = res.friendship_statuses[pk]
                   if (status.followed_by) {
-                    // This user actually follows us! Rescue them!
-                    // ONLY if they are not already in the followers list
                     if (!currentFwPks.has(String(pk))) {
                       const u = chunk.find((c) => String(c.pk) === pk)
                       if (u) {
@@ -799,52 +797,6 @@
               if (i + bSize < missing.length) await sleep(rand(1000, 1500))
             } catch (err) {
               console.warn('show_many skipped', err)
-            }
-          }
-        }
-      } else {
-        // === THIRD-PARTY DEEP SCAN ===
-        // We cannot use show_many for third-party accounts, so we search the target's followers list directly
-        let fwSet = new Set(followers.map((u) => String(u.pk)))
-        const missing = following.filter((u) => !fwSet.has(String(u.pk)))
-
-        if (missing.length > 0) {
-          setStatus(`เริ่มทำ Deep Scan แบบ Turbo (${missing.length} คน)...`, true)
-          const currentFwPks = new Set(followers.map(u => String(u.pk)))
-          const concurrency = 3 // Reduced from 4 for better stability
-          let hitRateLimit = false
-
-          for (let i = 0; i < missing.length; i += concurrency) {
-            const chunk = missing.slice(i, i + concurrency)
-            
-            await Promise.all(chunk.map(async (user) => {
-              try {
-                const searchUrl = `/api/v1/friendships/${userId}/followers/?count=30&query=${encodeURIComponent(user.username)}&search_surface=follow_list_page`
-                const data = await igGet(searchUrl)
-                
-                if (data.users) {
-                  const exactMatch = data.users.find(u => String(u.pk) === String(user.pk))
-                  if (exactMatch && !currentFwPks.has(String(user.pk))) {
-                    followers.push(user)
-                    currentFwPks.add(String(user.pk))
-                    fLoaded++
-                  }
-                }
-              } catch(err) {
-                console.warn('Deep scan skipped for', user.username, err)
-                if (err.message.includes('429') || err.message.includes('IG_HTML_BLOCK')) hitRateLimit = true
-              }
-            }))
-            
-            setStatus(`Deep Scan (Turbo): ตรวจสอบแล้ว ${Math.min(i + concurrency, missing.length)}/${missing.length} คน (กู้คืนได้: ${currentFwPks.size - fwSet.size} คน)`, true)
-            renderStats()
-            
-            if (hitRateLimit) {
-              setStatus(`หน่วงเวลาลดความร้อนของ IG... รอ 12 วินาที`, true)
-              await sleep(12000)
-              hitRateLimit = false
-            } else if (i + concurrency < missing.length) {
-              await sleep(rand(600, 1000))
             }
           }
         }
