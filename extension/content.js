@@ -79,16 +79,18 @@
     return res.json()
   }
 
-  async function igPost(path) {
-    const res = await fetch(`https://www.instagram.com${path}`, {
+  async function igPost(path, bodyStr = '') {
+    const opts = {
       method: 'POST', credentials: 'include',
       headers: {
         'X-IG-App-ID': '936619743392459',
         'X-CSRFToken': getCsrf(),
         'Content-Type': 'application/x-www-form-urlencoded',
         'Referer': 'https://www.instagram.com/',
-      },
-    })
+      }
+    }
+    if (bodyStr) opts.body = bodyStr
+    const res = await fetch(`https://www.instagram.com${path}`, opts)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     return res.json()
   }
@@ -383,15 +385,15 @@
   }
 
   function getFilteredList() {
-    // Use username for comparison — exactly like the original source
-    const followerSet = new Set(followers.map((u) => u.username.toLowerCase()))
-    const followingSet = new Set(following.map((u) => u.username.toLowerCase()))
+    // Use User ID (pk) for 100% accurate comparison instead of username
+    const followerSet = new Set(followers.map((u) => String(u.pk)))
+    const followingSet = new Set(following.map((u) => String(u.pk)))
 
     // notBack = people you follow (following) but they don't follow you back
     // iDont   = people who follow you (followers) but you don't follow them back
     const list = activeTab === 'notBack'
-      ? following.filter((u) => !followerSet.has(u.username.toLowerCase()))
-      : followers.filter((u) => !followingSet.has(u.username.toLowerCase()))
+      ? following.filter((u) => !followerSet.has(String(u.pk)))
+      : followers.filter((u) => !followingSet.has(String(u.pk)))
 
     const q = ($('igt-filter')?.value ?? '').toLowerCase().trim()
     if (!q) return list
@@ -407,10 +409,10 @@
 
   // ── Render stats ──────────────────────────────────────────────────────────────
   function renderStats() {
-    const followerSet = new Set(followers.map((u) => u.username.toLowerCase()))
-    const followingSet = new Set(following.map((u) => u.username.toLowerCase()))
-    const nb = following.filter((u) => !followerSet.has(u.username.toLowerCase())).length
-    const id = followers.filter((u) => !followingSet.has(u.username.toLowerCase())).length
+    const followerSet = new Set(followers.map((u) => String(u.pk)))
+    const followingSet = new Set(following.map((u) => String(u.pk)))
+    const nb = following.filter((u) => !followerSet.has(String(u.pk))).length
+    const id = followers.filter((u) => !followingSet.has(String(u.pk))).length
 
     const el = $('igt-stats')
     if (el) el.innerHTML = `
@@ -738,6 +740,41 @@
         updateStatus()
         renderStats()
       })
+
+      // === SMART VERIFICATION CHECK ===
+      // Verify reciprocal relationships for our own account to bypass IG API truncations
+      if (isOwnAccount) {
+        let fwSet = new Set(followers.map((u) => String(u.pk)))
+        const missing = following.filter((u) => !fwSet.has(String(u.pk)))
+        
+        if (missing.length > 0) {
+          setStatus(`ตรวจสอบเพื่อนเก่าที่ตกหล่น ${missing.length} คน (Smart Check)...`, true)
+          const bSize = 30
+          for (let i = 0; i < missing.length; i += bSize) {
+            const chunk = missing.slice(i, i + bSize)
+            const chunkIds = chunk.map((u) => String(u.pk)).join(',')
+            try {
+              const res = await igPost('/api/v1/friendships/show_many/', `user_ids=${chunkIds}`)
+              if (res && res.friendship_statuses) {
+                for (const pk in res.friendship_statuses) {
+                  if (res.friendship_statuses[pk].followed_by) {
+                    // This user actually follows us! Rescue them!
+                    const u = chunk.find((c) => String(c.pk) === pk)
+                    if (u) {
+                      followers.push(u)
+                    }
+                  }
+                }
+              }
+              setStatus(`ตรวจสอบเพื่อนเก่าที่ตกหล่น ${Math.min(i + chunk.length, missing.length)}/${missing.length} คน...`, true)
+              renderStats()
+              if (i + bSize < missing.length) await sleep(rand(1000, 1500))
+            } catch (err) {
+              console.warn('show_many skipped', err)
+            }
+          }
+        }
+      }
 
       // Done
       phase = 'done'
