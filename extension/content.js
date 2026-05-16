@@ -160,7 +160,7 @@
     } catch { return { followerCount: 0, followingCount: 0 } }
   }
 
-  const FOLLOWERS_CAP = 10000
+  const FOLLOWERS_CAP = Infinity  // no cap — load all like original source
 
   async function loadListStream(list, userId, onBatch, cap = Infinity) {
     let maxId   = ''
@@ -168,7 +168,8 @@
     let retries = 0
     while (true) {
       try {
-        let path = `/api/v1/friendships/${userId}/${list}/?count=200`
+        // Use count=50 exactly like the original source — higher counts can cause missing data
+        let path = `/api/v1/friendships/${userId}/${list}/?count=50`
         if (maxId) path += `&max_id=${maxId}`
         const data = await igGet(path)
         const users = data.users ?? []
@@ -179,7 +180,8 @@
         if (!data.next_max_id || loaded >= cap) break
         maxId   = data.next_max_id
         retries = 0
-        await sleep(rand(120, 280))
+        // Same delay range as original: 800-1500ms
+        await sleep(rand(800, 1500))
       } catch (err) {
         if (err.message.includes('429') && retries < 3) {
           retries++
@@ -412,12 +414,15 @@
   }
 
   function getFilteredList() {
-    const fSet = new Set(followers.map((u) => String(u.pk)))
-    const gSet = new Set(following.map((u) => String(u.pk)))
+    // Use username for comparison — exactly like the original source
+    const followerSet = new Set(followers.map((u) => u.username.toLowerCase()))
+    const followingSet = new Set(following.map((u) => u.username.toLowerCase()))
 
+    // notBack = people you follow (following) but they don't follow you back
+    // iDont   = people who follow you (followers) but you don't follow them back
     const list = activeTab === 'notBack'
-      ? following.filter((u) => !fSet.has(String(u.pk)))
-      : followers.filter((u) => !gSet.has(String(u.pk)))
+      ? following.filter((u) => !followerSet.has(u.username.toLowerCase()))
+      : followers.filter((u) => !followingSet.has(u.username.toLowerCase()))
 
     const q = ($('igt-filter')?.value ?? '').toLowerCase().trim()
     if (!q) return list
@@ -433,10 +438,10 @@
 
   // ── Render stats ──────────────────────────────────────────────────────────────
   function renderStats() {
-    const fSet = new Set(followers.map((u) => String(u.pk)))
-    const gSet = new Set(following.map((u) => String(u.pk)))
-    const nb   = following.filter((u) => !fSet.has(String(u.pk))).length
-    const id   = followers.filter((u) => !gSet.has(String(u.pk))).length
+    const followerSet = new Set(followers.map((u) => u.username.toLowerCase()))
+    const followingSet = new Set(following.map((u) => u.username.toLowerCase()))
+    const nb = following.filter((u) => !followerSet.has(u.username.toLowerCase())).length
+    const id = followers.filter((u) => !followingSet.has(u.username.toLowerCase())).length
 
     const el = $('igt-stats')
     if (el) el.innerHTML = `
@@ -741,24 +746,24 @@
           fill.style.width = pct + '%'
         }
       }
-      // Load followers (capped) and following IN PARALLEL
-      await Promise.all([
-        loadListStream('followers', userId, (batch, loaded) => {
-          followers.push(...batch)
-          fLoaded = loaded
-          updateStatus()
-          renderStats()
-          renderList()
-        }, FOLLOWERS_CAP),
+      // Load SEQUENTIALLY like original source — followers first, then following
+      // This ensures the diff is always accurate (no race condition)
 
-        loadListStream('following', userId, (batch, loaded) => {
-          following.push(...batch)
-          gLoaded = loaded
-          updateStatus()
-          renderStats()
-          renderList()
-        }),
-      ])
+      setStatus('กำลังโหลด followers...', true)
+      await loadListStream('followers', userId, (batch, loaded) => {
+        followers.push(...batch)
+        fLoaded = loaded
+        updateStatus()
+        renderStats()
+      })
+
+      setStatus('กำลังโหลด following...', true)
+      await loadListStream('following', userId, (batch, loaded) => {
+        following.push(...batch)
+        gLoaded = loaded
+        updateStatus()
+        renderStats()
+      })
 
       // Done
       phase = 'done'
