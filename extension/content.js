@@ -687,7 +687,7 @@
       
       // Strict check: only allow own account
       if (loggedIn.username && targetLower !== loggedIn.username) {
-        throw new Error(`ขออภัยครับ ระบบพัฒนามาเพื่อเน้นความแม่นยำสูงสุด จึงอนุญาตให้ตรวจสอบเฉพาะบัญชีของคุณเอง (@${loggedIn.username}) เท่านั้นครับ`)
+        throw new Error(`ขออภัยครับ ระบบพัฒนามาเพื่อเน้นความแม่นยำสูงสุด จึงอนุญาตให้ตรวจสอบเฉพาะบัญชีของคุณเอง (@${loggedIn.username}) เท่านั้นในขณะนี้ โปรดรอติดตามการอัปเดตในอนาคตครับ`)
       }
 
       // If we reach here, it's definitely the own account
