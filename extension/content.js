@@ -104,17 +104,17 @@
     } catch { return { followerCount: 0, followingCount: 0 } }
   }
 
-  const FOLLOWERS_CAP = 10000  // cap followers fetch for large accounts
+  const FOLLOWERS_CAP = 10000
 
-  // Stream pages with progress callback
-  // onBatch(users, loaded, total)
   async function loadListStream(list, userId, onBatch, cap = Infinity) {
     let maxId   = ''
     let loaded  = 0
     let retries = 0
     while (true) {
       try {
-        const data = await fetchPage(list, userId, maxId)
+        let path = `/api/v1/friendships/${userId}/${list}/?count=200`
+        if (maxId) path += `&max_id=${maxId}`
+        const data = await igGet(path)
         const users = data.users ?? []
         if (users.length) {
           onBatch(users, loaded + users.length)
