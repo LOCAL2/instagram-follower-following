@@ -93,34 +93,43 @@
     return data.users?.find((r) => r.user.username.toLowerCase() === lower)?.user?.pk ?? null
   }
 
-  // Fetch one page, return { users, next_max_id }
-  async function fetchPage(list, userId, maxId) {
-    let path = `/api/v1/friendships/${userId}/${list}/?count=200`
-    if (maxId) path += `&max_id=${maxId}`
-    return igGet(path)
+  // Get follower/following counts to show accurate progress
+  async function getUserInfo(userId) {
+    try {
+      const data = await igGet(`/api/v1/users/${userId}/info/`)
+      return {
+        followerCount: data.user?.follower_count ?? 0,
+        followingCount: data.user?.following_count ?? 0,
+      }
+    } catch { return { followerCount: 0, followingCount: 0 } }
   }
 
-  // Stream all pages — minimal delay between pages, parallel start for followers+following
-  async function loadListStream(list, userId, onBatch) {
-    let maxId = ''
+  const FOLLOWERS_CAP = 10000  // cap followers fetch for large accounts
+
+  // Stream pages with progress callback
+  // onBatch(users, loaded, total)
+  async function loadListStream(list, userId, onBatch, cap = Infinity) {
+    let maxId   = ''
+    let loaded  = 0
     let retries = 0
     while (true) {
       try {
         const data = await fetchPage(list, userId, maxId)
-        if (data.users?.length) onBatch(data.users)
-        if (!data.next_max_id) break
-        maxId = data.next_max_id
+        const users = data.users ?? []
+        if (users.length) {
+          onBatch(users, loaded + users.length)
+          loaded += users.length
+        }
+        if (!data.next_max_id || loaded >= cap) break
+        maxId   = data.next_max_id
         retries = 0
-        // Minimal delay — just enough to avoid rate limit
         await sleep(rand(120, 280))
       } catch (err) {
         if (err.message.includes('429') && retries < 3) {
-          // Rate limited — back off and retry
           retries++
-          await sleep(retries * 1500)
-        } else {
-          throw err
-        }
+          setStatus(`Rate limited — รอ ${retries * 2}s...`, true)
+          await sleep(retries * 2000)
+        } else { throw err }
       }
     }
   }
@@ -515,6 +524,9 @@
     const btn = $('igt-btn')
     btn.disabled = true; btn.textContent = 'กำลังโหลด...'
     setProgress(true)
+    // Start indeterminate
+    const fillEl = document.querySelector(`#${PANEL_ID} .igt-progress-fill`)
+    if (fillEl) fillEl.classList.add('indeterminate')
 
     const main = $('igt-main')
     if (main) { main.style.display = 'flex'; $('igt-list-wrap').innerHTML = '' }
@@ -524,20 +536,59 @@
       const userId = await getUserId(username)
       if (!userId) throw new Error(`ไม่พบ username "${username}"`)
 
-      // Load followers and following IN PARALLEL for maximum speed
-      phase = 'loading'
-      setStatus('กำลังโหลด...', true)
+      // Get counts for progress display
+      setStatus('กำลังดึงข้อมูล...', true)
+      const { followerCount, followingCount } = await getUserInfo(userId)
 
+      // Warn if account is very large
+      const isBigAccount = followerCount > FOLLOWERS_CAP
+      if (isBigAccount) {
+        setStatus(
+          `⚡ ${followerCount.toLocaleString()} followers — โหลดแค่ ${FOLLOWERS_CAP.toLocaleString()} คนแรก`,
+          false
+        )
+        await sleep(1800)
+      }
+
+      phase = 'loading'
+
+      // Progress tracker
+      const fTotal = Math.min(followerCount, FOLLOWERS_CAP)
+      const gTotal = followingCount
+      let fLoaded  = 0
+      let gLoaded  = 0
+      let startTime = Date.now()
+
+      function updateStatus() {
+        const total   = fTotal + gTotal
+        const loaded  = fLoaded + gLoaded
+        const pct     = total > 0 ? Math.round(loaded / total * 100) : 0
+        const elapsed = (Date.now() - startTime) / 1000
+        const rate    = loaded / Math.max(elapsed, 1)
+        const remain  = total > 0 && rate > 0 ? Math.round((total - loaded) / rate) : 0
+        const eta     = remain > 5 ? ` · ~${remain}s` : ''
+        setStatus(`โหลด ${loaded.toLocaleString()}/${total > 0 ? total.toLocaleString() : '?'} คน (${pct}%)${eta}`, true)
+        // Switch from indeterminate to real progress
+        const fill = document.querySelector(`#${PANEL_ID} .igt-progress-fill`)
+        if (fill) {
+          fill.classList.remove('indeterminate')
+          fill.style.width = pct + '%'
+        }
+      }
+      // Load followers (capped) and following IN PARALLEL
       await Promise.all([
-        loadListStream('followers', userId, (batch) => {
+        loadListStream('followers', userId, (batch, loaded) => {
           followers.push(...batch)
-          setStatus(`followers ${followers.length} · following ${following.length}`, true)
+          fLoaded = loaded
+          updateStatus()
           renderStats()
           renderList()
-        }),
-        loadListStream('following', userId, (batch) => {
+        }, FOLLOWERS_CAP),
+
+        loadListStream('following', userId, (batch, loaded) => {
           following.push(...batch)
-          setStatus(`followers ${followers.length} · following ${following.length}`, true)
+          gLoaded = loaded
+          updateStatus()
           renderStats()
           renderList()
         }),
@@ -545,7 +596,9 @@
 
       // Done
       phase = 'done'
-      setStatus('')
+      setStatus(isBigAccount
+        ? `⚡ โหลดครบ — followers แสดง ${FOLLOWERS_CAP.toLocaleString()} คนแรก (จาก ${followerCount.toLocaleString()})`
+        : '', false)
       setProgress(false)
       $('igt-list-wrap').innerHTML = ''
       renderStats()

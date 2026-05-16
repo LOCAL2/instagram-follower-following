@@ -188,8 +188,14 @@
 }
 #__igt_panel__ .igt-progress-fill {
   height: 100%;
+  width: 0%;
   background: linear-gradient(90deg,#f09433,#dc2743,#bc1888);
   border-radius: 99px;
+  transition: width 0.3s ease;
+}
+/* Indeterminate animation when width not set */
+#__igt_panel__ .igt-progress-fill.indeterminate {
+  width: 100% !important;
   animation: igt-prog 1.6s ease-in-out infinite;
 }
 @keyframes igt-prog {
