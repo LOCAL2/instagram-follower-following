@@ -13,12 +13,17 @@
 
   chrome.runtime.onMessage.addListener((msg) => {
     if (msg.type === 'TOGGLE_PANEL') togglePanel()
+    if (msg.type === 'OPEN_PANEL')   openPanel()
   })
 
   function togglePanel() {
     const p = document.getElementById(PANEL_ID)
     if (p) { p.remove(); return }
     createPanel()
+  }
+
+  function openPanel() {
+    if (!document.getElementById(PANEL_ID)) createPanel()
   }
 
   // ── Theme ─────────────────────────────────────────────────────────────────────
