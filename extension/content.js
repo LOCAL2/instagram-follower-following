@@ -136,7 +136,7 @@
     let retries = 0
     while (true) {
       try {
-        let path = `/api/v1/friendships/${userId}/${list}/?count=50`
+        let path = `/api/v1/friendships/${userId}/${list}/?count=50&search_surface=follow_list_page`
         if (maxId) path += `&max_id=${maxId}`
         const data = await igGet(path)
         const users = data.users ?? []
@@ -723,7 +723,7 @@
       // Load SEQUENTIALLY like original source — followers first, then following
       // This ensures the diff is always accurate (no race condition)
 
-      setStatus('กำลังโหลด followers...', true)
+      setStatus('กำลังโหลด ผู้ที่ติดตามคุณ (followers)...', true)
       await loadListStream('followers', userId, (batch, loaded) => {
         followers.push(...batch)
         fLoaded = loaded
@@ -731,7 +731,7 @@
         renderStats()
       })
 
-      setStatus('กำลังโหลด following...', true)
+      setStatus('กำลังโหลด ผู้ที่คุณติดตาม (following)...', true)
       await loadListStream('following', userId, (batch, loaded) => {
         following.push(...batch)
         gLoaded = loaded
