@@ -360,7 +360,7 @@
 
     document.getElementById('igt-close').onclick = () => {
       panel.remove()
-      // Clear persisted open state so panel doesn't reopen on refresh
+      // Set storage directly — more reliable than messaging background service worker
       chrome.storage.session.set({ igt_panel_open: false })
       // Reset all data state so next open starts fresh
       followers.length = 0
