@@ -111,11 +111,6 @@
     }
   }
 
-  async function getUserId(username) {
-    const lower = username.toLowerCase()
-    const data  = await igGet(`/api/v1/web/search/topsearch/?context=blended&query=${lower}&include_reel=false`)
-    return data.users?.find((r) => r.user.username.toLowerCase() === lower)?.user?.pk ?? null
-  }
 
   // Get the currently logged-in user's ID and username
   async function getLoggedInUser() {
@@ -312,7 +307,7 @@
             <div class="igt-input-wrap">
               <span class="igt-at">@</span>
               <input id="igt-input" class="igt-input" type="text"
-                placeholder="instagram_username"
+                placeholder="ชื่อบัญชีของคุณเอง"
                 autocomplete="off" autocapitalize="none" spellcheck="false"/>
             </div>
             <button class="igt-btn" id="igt-btn" type="submit">ตรวจสอบ</button>
@@ -680,26 +675,22 @@
     if (main) { main.style.display = 'flex'; $('igt-list-wrap').innerHTML = '' }
 
     try {
-      setStatus('กำลังค้นหา...', true)
+      setStatus('กำลังตรวจสอบสิทธิ์...', true)
       
-      // Get target user ID and logged-in user info in parallel
-      const [targetId, loggedIn] = await Promise.all([
-        getUserId(username),
-        getLoggedInUser()
-      ])
-
-      if (!targetId) throw new Error(`ไม่พบ username "${username}"`)
+      // Get logged-in user info first
+      const loggedIn = await getLoggedInUser()
+      if (!loggedIn.pk) throw new Error('กรุณาล็อกอิน Instagram ก่อนใช้งาน')
       
-      // Check if searching own account — compare target ID with logged-in user ID from cookie
-      isOwnAccount = false
-      if (loggedIn.pk && String(targetId) === String(loggedIn.pk)) {
-        isOwnAccount = true
-      } else if (!loggedIn.pk) {
-        // Cookie not found — ask user
-        isOwnAccount = confirm(`"${username}" เป็นบัญชีของคุณเองไหม?\n\nกด OK = ใช่ (จะแสดงปุ่ม Follow/Unfollow)\nกด Cancel = ไม่ใช่`)
+      const targetLower = username.toLowerCase().replace(/^@/, '')
+      
+      // Strict check: only allow own account
+      if (loggedIn.username && targetLower !== loggedIn.username) {
+        throw new Error(`ระบบอนุญาตให้ตรวจสอบเฉพาะบัญชีของคุณ (@${loggedIn.username}) เท่านั้น เพื่อความแม่นยำ 100%`)
       }
 
-      const userId = targetId
+      // If we reach here, it's definitely the own account
+      isOwnAccount = true
+      const userId = loggedIn.pk
 
       // Get counts for progress display
       setStatus('กำลังดึงข้อมูล...', true)
