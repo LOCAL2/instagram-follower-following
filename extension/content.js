@@ -93,14 +93,35 @@
     return data.users?.find((r) => r.user.username.toLowerCase() === lower)?.user?.pk ?? null
   }
 
-  async function loadListStream(list, userId, maxId, onBatch) {
-    let path = `/api/v1/friendships/${userId}/${list}/?count=50`
+  // Fetch one page, return { users, next_max_id }
+  async function fetchPage(list, userId, maxId) {
+    let path = `/api/v1/friendships/${userId}/${list}/?count=200`
     if (maxId) path += `&max_id=${maxId}`
-    const data = await igGet(path)
-    onBatch(data.users)
-    if (data.next_max_id) {
-      await sleep(rand(800, 1500))
-      await loadListStream(list, userId, data.next_max_id, onBatch)
+    return igGet(path)
+  }
+
+  // Stream all pages — minimal delay between pages, parallel start for followers+following
+  async function loadListStream(list, userId, onBatch) {
+    let maxId = ''
+    let retries = 0
+    while (true) {
+      try {
+        const data = await fetchPage(list, userId, maxId)
+        if (data.users?.length) onBatch(data.users)
+        if (!data.next_max_id) break
+        maxId = data.next_max_id
+        retries = 0
+        // Minimal delay — just enough to avoid rate limit
+        await sleep(rand(120, 280))
+      } catch (err) {
+        if (err.message.includes('429') && retries < 3) {
+          // Rate limited — back off and retry
+          retries++
+          await sleep(retries * 1500)
+        } else {
+          throw err
+        }
+      }
     }
   }
 
@@ -352,6 +373,15 @@
     }
 
     // No filter: incremental append — only add rows not yet in DOM
+    // During parallel loading, do full re-render since diff changes every batch
+    if (phase !== 'done') {
+      wrap.innerHTML = `<ul class="igt-list">${list.map((u) => userRow(u, action)).join('')}</ul>`
+      list.forEach((u) => bindRowEvents(u.pk, action))
+      renderBulkBar()
+      return
+    }
+
+    // Done: incremental append — only add rows not yet in DOM
     const existingUids = new Set(
       [...wrap.querySelectorAll('.igt-user')].map((li) => li.dataset.uid)
     )
@@ -494,27 +524,24 @@
       const userId = await getUserId(username)
       if (!userId) throw new Error(`ไม่พบ username "${username}"`)
 
-      // Stream followers
-      phase = 'followers'
-      setStatus('โหลด followers... (0 คน)', true)
-      await loadListStream('followers', userId, '', (batch) => {
-        followers.push(...batch)
-        setStatus(`โหลด followers... (${followers.length} คน)`, true)
-        renderStats()
-        renderList()
-      })
+      // Load followers and following IN PARALLEL for maximum speed
+      phase = 'loading'
+      setStatus('กำลังโหลด...', true)
 
-      // Stream following
-      phase = 'following'
-      setStatus('โหลด following... (0 คน)', true)
-      $('igt-list-wrap').innerHTML = ''  // reset list — following changes the diff
-
-      await loadListStream('following', userId, '', (batch) => {
-        following.push(...batch)
-        setStatus(`โหลด following... (${following.length} คน)`, true)
-        renderStats()
-        renderList()
-      })
+      await Promise.all([
+        loadListStream('followers', userId, (batch) => {
+          followers.push(...batch)
+          setStatus(`followers ${followers.length} · following ${following.length}`, true)
+          renderStats()
+          renderList()
+        }),
+        loadListStream('following', userId, (batch) => {
+          following.push(...batch)
+          setStatus(`followers ${followers.length} · following ${following.length}`, true)
+          renderStats()
+          renderList()
+        }),
+      ])
 
       // Done
       phase = 'done'
