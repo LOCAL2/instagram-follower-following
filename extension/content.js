@@ -217,6 +217,9 @@
         document.querySelectorAll(`#${PANEL_ID} .igt-tab`).forEach((t) => t.classList.remove('active'))
         tab.classList.add('active')
         document.getElementById('igt-filter').value = ''
+        // Clear list completely before rendering new tab's data
+        const wrap = $('igt-list-wrap')
+        if (wrap) wrap.innerHTML = ''
         renderList()
       }
     })
