@@ -504,7 +504,7 @@
     const existingUids = new Set(
       [...wrap.querySelectorAll('.igt-user')].map((li) => li.dataset.uid)
     )
-    const newItems = list.filter((u) => !existingUids.has(u.pk))
+    const newItems = list.filter((u) => !existingUids.has(String(u.pk)))
 
     if (existingUids.size === 0) {
       wrap.innerHTML = `<ul class="igt-list"></ul>`
@@ -554,7 +554,6 @@
         </div>
         ${btnHtml}
       </li>`
-  }
   }
 
   function bindRowEvents(uid, action) {
