@@ -744,6 +744,15 @@
       renderStats()
       renderList()
 
+      // Debug log — compare with original source
+      const followerSet = new Set(followers.map(u => u.username.toLowerCase()))
+      const followingSet = new Set(following.map(u => u.username.toLowerCase()))
+      const notFollowingBack = [...followingSet].filter(u => !followerSet.has(u))
+      const iDontFollowBack  = [...followerSet].filter(u => !followingSet.has(u))
+      console.log(`[IGT] followers: ${followerSet.size}, following: ${followingSet.size}`)
+      console.log(`[IGT] NotFollowingMeBack: ${notFollowingBack.length}`, notFollowingBack.slice(0,5))
+      console.log(`[IGT] IDontFollowBack: ${iDontFollowBack.length}`, iDontFollowBack.slice(0,5))
+
     } catch (err) {
       setProgress(false)
       setStatus('')
