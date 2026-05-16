@@ -134,9 +134,9 @@
     let maxId   = ''
     let loaded  = 0
     let retries = 0
+    console.log(`[IGT] start loading ${list}`)
     while (true) {
       try {
-        // Use count=50 exactly like the original source — higher counts can cause missing data
         let path = `/api/v1/friendships/${userId}/${list}/?count=50`
         if (maxId) path += `&max_id=${maxId}`
         const data = await igGet(path)
@@ -145,10 +145,10 @@
           onBatch(users, loaded + users.length)
           loaded += users.length
         }
+        console.log(`[IGT] ${list} page loaded: ${users.length}, total: ${loaded}, more: ${!!data.next_max_id}`)
         if (!data.next_max_id || loaded >= cap) break
         maxId   = data.next_max_id
         retries = 0
-        // Same delay range as original: 800-1500ms
         await sleep(rand(800, 1500))
       } catch (err) {
         if (err.message.includes('429') && retries < 3) {
@@ -158,6 +158,7 @@
         } else { throw err }
       }
     }
+    console.log(`[IGT] done loading ${list}: ${loaded} total`)
   }
 
   // ── Live page DOM update ──────────────────────────────────────────────────────
@@ -548,8 +549,7 @@
     return `
       <li class="igt-user${done ? ' igt-user--done' : ''}" data-uid="${u.pk}">
         ${actionHtml}
-        <img class="igt-avatar" src="${u.profile_pic_url}" loading="lazy"
-          onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(u.username)}&size=40&background=random'" alt=""/>
+        <img class="igt-avatar" src="${u.profile_pic_url}" loading="lazy" data-username="${encodeURIComponent(u.username)}" alt=""/>
         <div class="igt-info">
           <a class="igt-uname" href="https://www.instagram.com/${u.username}/" target="_blank">@${u.username}</a>
           ${u.full_name ? `<span class="igt-fname">${u.full_name}</span>` : ''}
@@ -563,6 +563,14 @@
     if (!li) return
     const abtn = li.querySelector('.igt-action-btn')
     const cb   = li.querySelector('.igt-cb')
+    const img  = li.querySelector('.igt-avatar')
+    if (img && !img.dataset.errBound) {
+      img.dataset.errBound = '1'
+      img.onerror = () => {
+        img.onerror = null
+        img.src = `https://ui-avatars.com/api/?name=${img.dataset.username}&size=40&background=random`
+      }
+    }
     if (abtn && !abtn.dataset.bound) {
       abtn.dataset.bound = '1'
       abtn.onclick = () => doAction(uid, action)
