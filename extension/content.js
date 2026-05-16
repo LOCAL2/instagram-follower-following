@@ -76,7 +76,15 @@
       headers: { 'X-IG-App-ID': '936619743392459' },
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    return res.json()
+    const text = await res.text()
+    try {
+      return JSON.parse(text)
+    } catch(err) {
+      if (text.trim().startsWith('<')) {
+        throw new Error('IG_HTML_BLOCK') // Sent HTML instead of JSON
+      }
+      throw err
+    }
   }
 
   async function igPost(path, bodyStr = '') {
@@ -92,7 +100,15 @@
     if (bodyStr) opts.body = bodyStr
     const res = await fetch(`https://www.instagram.com${path}`, opts)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    return res.json()
+    const text = await res.text()
+    try {
+      return JSON.parse(text)
+    } catch(err) {
+      if (text.trim().startsWith('<')) {
+        throw new Error('IG_HTML_BLOCK')
+      }
+      throw err
+    }
   }
 
   async function getUserId(username) {
@@ -814,7 +830,7 @@
                 }
               } catch(err) {
                 console.warn('Deep scan skipped for', user.username, err)
-                if (err.message.includes('429')) hitRateLimit = true
+                if (err.message.includes('429') || err.message.includes('IG_HTML_BLOCK')) hitRateLimit = true
               }
             }))
             
