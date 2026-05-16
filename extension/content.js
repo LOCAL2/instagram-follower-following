@@ -101,51 +101,12 @@
 
   // Get the currently logged-in user's ID and username
   async function getLoggedInUser() {
-    // Try multiple endpoints to get logged-in user info
-    const attempts = [
-      // Method 1: accounts API
-      async () => {
-        const data = await igGet('/api/v1/accounts/current_user/?edit=true')
-        const u = data.user
-        if (u?.pk) return { pk: String(u.pk), username: u.username?.toLowerCase() ?? null }
-        return null
-      },
-      // Method 2: web profile info via graphql
-      async () => {
-        const data = await igGet('/api/v1/users/web_profile_info/?username=me')
-        const u = data.data?.user
-        if (u?.id) return { pk: String(u.id), username: u.username?.toLowerCase() ?? null }
-        return null
-      },
-      // Method 3: read ds_user_id from cookie
-      async () => {
-        const match = document.cookie.match(/ds_user_id=(\d+)/)
-        if (match) return { pk: match[1], username: null }
-        return null
-      },
-      // Method 4: read from Instagram's window.__additionalData or similar
-      async () => {
-        const scripts = [...document.querySelectorAll('script[type="application/json"]')]
-        for (const s of scripts) {
-          try {
-            const json = JSON.parse(s.textContent)
-            const pk = json?.config?.viewer?.id || json?.viewer?.id
-            const uname = json?.config?.viewer?.username || json?.viewer?.username
-            if (pk) return { pk: String(pk), username: uname?.toLowerCase() ?? null }
-          } catch {}
-        }
-        return null
-      },
-    ]
-
-    for (const attempt of attempts) {
-      try {
-        const result = await attempt()
-        if (result) return result
-      } catch {}
+    // Most reliable: read ds_user_id from cookie (always available when logged in)
+    const cookieMatch = document.cookie.match(/ds_user_id=(\d+)/)
+    if (cookieMatch) {
+      // Also try to get username from search if needed
+      return { pk: cookieMatch[1], username: null }
     }
-
-    // Cannot determine — return null (will be handled as unknown)
     return { pk: null, username: null }
   }
 
@@ -694,14 +655,12 @@
 
       if (!targetId) throw new Error(`ไม่พบ username "${username}"`)
       
-      // Check if searching own account
+      // Check if searching own account — compare target ID with logged-in user ID from cookie
       isOwnAccount = false
       if (loggedIn.pk && String(targetId) === String(loggedIn.pk)) {
         isOwnAccount = true
-      } else if (loggedIn.username && loggedIn.username === username.toLowerCase()) {
-        isOwnAccount = true
-      } else if (!loggedIn.pk && !loggedIn.username) {
-        // Cannot detect — show a prompt to let user confirm
+      } else if (!loggedIn.pk) {
+        // Cookie not found — ask user
         isOwnAccount = confirm(`"${username}" เป็นบัญชีของคุณเองไหม?\n\nกด OK = ใช่ (จะแสดงปุ่ม Follow/Unfollow)\nกด Cancel = ไม่ใช่`)
       }
 
