@@ -101,13 +101,20 @@
 
   // Get the currently logged-in user's ID and username
   async function getLoggedInUser() {
-    // Most reliable: read ds_user_id from cookie (always available when logged in)
+    // Read ID from cookie (always reliable)
     const cookieMatch = document.cookie.match(/ds_user_id=(\d+)/)
-    if (cookieMatch) {
-      // Also try to get username from search if needed
-      return { pk: cookieMatch[1], username: null }
+    if (!cookieMatch) return { pk: null, username: null }
+    const pk = cookieMatch[1]
+    // Fetch real username from user info API
+    try {
+      const data = await igGet(`/api/v1/users/${pk}/info/`)
+      return {
+        pk,
+        username: data.user?.username?.toLowerCase() ?? null,
+      }
+    } catch {
+      return { pk, username: null }
     }
-    return { pk: null, username: null }
   }
 
   // Get follower/following counts to show accurate progress
@@ -335,6 +342,17 @@
       if (u) runSearch(u)
     }
     document.getElementById('igt-filter').oninput = () => renderList()
+
+    // Auto-detect and fill logged-in username
+    getLoggedInUser().then(({ username: uname }) => {
+      const input = document.getElementById('igt-input')
+      if (uname && input) {
+        input.value = uname
+        input.placeholder = uname
+        // Auto-search own account immediately
+        runSearch(uname)
+      }
+    })
 
     document.querySelectorAll(`#${PANEL_ID} .igt-tab`).forEach((tab) => {
       tab.onclick = () => {
