@@ -166,7 +166,7 @@
         if (isBlock && retries < 4) {
           retries++
           const wait = retries * 5000
-          setStatus(`IG จำกัดการเข้าถึง (ชั่วคราว) — รอ ${wait/1000}s...`, true)
+          setStatus(`IG จำกัดการเข้าถึง (ชั่วคราว) — รอ ${wait/1000}s...`, 'loading')
           await sleep(wait)
         } else { throw err }
       }
@@ -384,12 +384,15 @@
   // ── Helpers ───────────────────────────────────────────────────────────────────
   const $  = (id) => document.getElementById(id)
 
-  function setStatus(text, loading = false) {
+  function setStatus(text, type = 'info') {
     const bar = $('igt-status-bar')
     if (!bar) return
-    bar.innerHTML = loading
-      ? `<span class="igt-spinner"></span>${text}`
-      : text
+    
+    let icon = ''
+    if (type === 'loading') icon = '<span class="igt-spinner"></span>'
+    
+    bar.innerHTML = `${icon}${text}`
+    bar.style.opacity = text ? '1' : '0'
   }
 
   function setProgress(v) {
@@ -489,7 +492,6 @@
     // During loading: don't show list yet — diff is incomplete and will be wrong
     if (phase !== 'done') {
       wrap.innerHTML = `<div class="igt-hint">
-        <div style="font-size:28px;margin-bottom:8px">⏳</div>
         กำลังโหลดข้อมูล...<br/>
         <span style="font-size:11px;opacity:0.6">ผลลัพธ์จะแสดงเมื่อโหลดครบ</span>
       </div>`
@@ -501,7 +503,7 @@
 
     if (!list.length) {
       wrap.innerHTML = `<div class="igt-empty">${
-        q ? `ไม่พบ "${q}"` : '🎉 ไม่มีรายการ'
+        q ? `ไม่พบ "${q}"` : 'ไม่มีรายการ'
       }</div>`
       renderBulkBar()
       return
@@ -606,7 +608,7 @@
       li.classList.add('igt-user--done')
       if (abtn) {
         abtn.disabled = true
-        abtn.textContent = action === 'unfollow' ? 'Unfollowed ✓' : 'Followed ✓'
+        abtn.textContent = action === 'unfollow' ? 'Unfollowed' : 'Followed'
         abtn.className = 'igt-action-btn igt-action-btn--done'
       }
       if (cb) cb.disabled = true
@@ -632,7 +634,7 @@
     } catch (err) {
       followState[uid] = null
       updateRowState(uid, action)
-      setStatus(`❌ ${err.message}`)
+      setStatus(`❌ ${err.message}`, 'error')
       setTimeout(() => setStatus(''), 3000)
     }
     renderBulkBar()
@@ -645,7 +647,7 @@
     if (bulkBtn) { bulkBtn.disabled = true }
 
     for (let i = 0; i < uids.length; i++) {
-      setStatus(`${action === 'unfollow' ? 'Unfollow' : 'Follow'} ${i + 1}/${uids.length}...`, true)
+      setStatus(`${action === 'unfollow' ? 'Unfollow' : 'Follow'} ${i + 1}/${uids.length}...`, 'loading')
       await doAction(uids[i], action)
       if (i < uids.length - 1) await sleep(rand(1200, 2200))
     }
@@ -675,7 +677,7 @@
     if (main) { main.style.display = 'flex'; $('igt-list-wrap').innerHTML = '' }
 
     try {
-      setStatus('กำลังตรวจสอบสิทธิ์...', true)
+      setStatus('กำลังตรวจสอบสิทธิ์...', 'loading')
       
       // Get logged-in user info first
       const loggedIn = await getLoggedInUser()
@@ -685,7 +687,7 @@
       
       // Strict check: only allow own account
       if (loggedIn.username && targetLower !== loggedIn.username) {
-        throw new Error(`ระบบอนุญาตให้ตรวจสอบเฉพาะบัญชีของคุณ (@${loggedIn.username}) เท่านั้น เพื่อความแม่นยำ 100%`)
+        throw new Error(`ขออภัยครับ ระบบพัฒนามาเพื่อเน้นความแม่นยำสูงสุด จึงอนุญาตให้ตรวจสอบเฉพาะบัญชีของคุณเอง (@${loggedIn.username}) เท่านั้นครับ`)
       }
 
       // If we reach here, it's definitely the own account
@@ -693,15 +695,15 @@
       const userId = loggedIn.pk
 
       // Get counts for progress display
-      setStatus('กำลังดึงข้อมูล...', true)
+      setStatus('กำลังดึงข้อมูล...', 'loading')
       const { followerCount, followingCount } = await getUserInfo(userId)
 
       // Warn if account is very large
       const isBigAccount = followerCount > FOLLOWERS_CAP
       if (isBigAccount) {
         setStatus(
-          `⚡ ${followerCount.toLocaleString()} followers — โหลดแค่ ${FOLLOWERS_CAP.toLocaleString()} คนแรก`,
-          false
+          `${followerCount.toLocaleString()} followers — โหลดแค่ ${FOLLOWERS_CAP.toLocaleString()} คนแรก`,
+          'info'
         )
         await sleep(1800)
       }
@@ -734,7 +736,7 @@
       // Load SEQUENTIALLY like original source — followers first, then following
       // This ensures the diff is always accurate (no race condition)
 
-      setStatus('กำลังโหลด ผู้ที่ติดตามคุณ (followers)...', true)
+      setStatus('กำลังโหลด ผู้ที่ติดตามคุณ (followers)...', 'loading')
       await loadListStream('followers', userId, (batch, loaded) => {
         const currentPks = new Set(followers.map(u => String(u.pk)))
         const newEntries = batch.filter(u => !currentPks.has(String(u.pk)))
@@ -744,7 +746,7 @@
         renderStats()
       })
 
-      setStatus('กำลังโหลด ผู้ที่คุณติดตาม (following)...', true)
+      setStatus('กำลังโหลด ผู้ที่คุณติดตาม (following)...', 'loading')
       await loadListStream('following', userId, (batch, loaded) => {
         const currentPks = new Set(following.map(u => String(u.pk)))
         const newEntries = batch.filter(u => !currentPks.has(String(u.pk)))
@@ -761,7 +763,7 @@
         const missing = following.filter((u) => !fwSet.has(String(u.pk)))
         
         if (missing.length > 0) {
-          setStatus(`ตรวจสอบเพื่อนเก่าที่ตกหล่น ${missing.length} คน (Smart Check)...`, true)
+          setStatus(`ตรวจสอบเพื่อนเก่าที่ตกหล่น ${missing.length} คน (Smart Check)...`, 'loading')
           const bSize = 30
           for (let i = 0; i < missing.length; i += bSize) {
             const chunk = missing.slice(i, i + bSize)
@@ -783,7 +785,7 @@
                   }
                 }
               }
-              setStatus(`ตรวจสอบเพื่อนเก่าที่ตกหล่น ${Math.min(i + chunk.length, missing.length)}/${missing.length} คน...`, true)
+              setStatus(`ตรวจสอบเพื่อนเก่าที่ตกหล่น ${Math.min(i + chunk.length, missing.length)}/${missing.length} คน...`, 'loading')
               renderStats()
               if (i + bSize < missing.length) await sleep(rand(1000, 1500))
             } catch (err) {
@@ -796,8 +798,8 @@
       // Done
       phase = 'done'
       setStatus(isBigAccount
-        ? `⚡ โหลดครบ — followers แสดง ${FOLLOWERS_CAP.toLocaleString()} คนแรก (จาก ${followerCount.toLocaleString()})`
-        : '', false)
+        ? `โหลดครบ — followers แสดง ${FOLLOWERS_CAP.toLocaleString()} คนแรก (จาก ${followerCount.toLocaleString()})`
+        : '', 'info')
       setProgress(false)
       $('igt-list-wrap').innerHTML = ''
       renderStats()
@@ -805,9 +807,18 @@
 
     } catch (err) {
       setProgress(false)
-      setStatus('')
+      setStatus(`เกิดข้อผิดพลาด`, 'error')
       const wrap = $('igt-list-wrap')
-      if (wrap) wrap.innerHTML = `<div class="igt-error">❌ ${err.message}</div>`
+      if (wrap) {
+        wrap.innerHTML = `
+          <div class="igt-error-card">
+            <div class="igt-error-header">
+              <span>ไม่สามารถดำเนินการได้</span>
+            </div>
+            <div class="igt-error-msg">${err.message}</div>
+          </div>
+        `
+      }
     } finally {
       btn.disabled = false; btn.textContent = 'ตรวจสอบ'
     }
