@@ -343,16 +343,8 @@
     }
     document.getElementById('igt-filter').oninput = () => renderList()
 
-    // Auto-detect and fill logged-in username
-    getLoggedInUser().then(({ username: uname }) => {
-      const input = document.getElementById('igt-input')
-      if (uname && input) {
-        input.value = uname
-        input.placeholder = uname
-        // Auto-search own account immediately
-        runSearch(uname)
-      }
-    })
+    // Pre-fetch logged-in user info silently for own-account detection only
+    getLoggedInUser()
 
     document.querySelectorAll(`#${PANEL_ID} .igt-tab`).forEach((tab) => {
       tab.onclick = () => {
