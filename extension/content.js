@@ -167,10 +167,12 @@
         retries = 0
         await sleep(rand(800, 1500))
       } catch (err) {
-        if (err.message.includes('429') && retries < 3) {
+        const isBlock = err.message.includes('429') || err.message.includes('IG_HTML_BLOCK')
+        if (isBlock && retries < 4) {
           retries++
-          setStatus(`Rate limited — รอ ${retries * 2}s...`, true)
-          await sleep(retries * 2000)
+          const wait = retries * 5000
+          setStatus(`IG จำกัดการเข้าถึง (ชั่วคราว) — รอ ${wait/1000}s...`, true)
+          await sleep(wait)
         } else { throw err }
       }
     }
@@ -809,7 +811,7 @@
         if (missing.length > 0) {
           setStatus(`เริ่มทำ Deep Scan แบบ Turbo (${missing.length} คน)...`, true)
           const currentFwPks = new Set(followers.map(u => String(u.pk)))
-          const concurrency = 4
+          const concurrency = 3 // Reduced from 4 for better stability
           let hitRateLimit = false
 
           for (let i = 0; i < missing.length; i += concurrency) {
