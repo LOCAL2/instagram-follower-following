@@ -388,3 +388,142 @@
   from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ── Bulk action bar ── */
+#__igt_panel__ .igt-bulk-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #f8f7fb;
+  border-radius: 10px;
+  margin-bottom: 4px;
+  min-height: 36px;
+}
+
+#__igt_panel__ .igt-select-all-wrap {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: #555;
+  cursor: pointer;
+  user-select: none;
+}
+
+#__igt_panel__ .igt-select-all-wrap input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  accent-color: #c13584;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+#__igt_panel__ .igt-bulk-btn {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+#__igt_panel__ .igt-bulk-btn:hover:not(:disabled) { opacity: 0.85; transform: translateY(-1px); }
+#__igt_panel__ .igt-bulk-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+#__igt_panel__ .igt-bulk-btn--unfollow {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+#__igt_panel__ .igt-bulk-btn--follow {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+/* ── Checkbox on each user row ── */
+#__igt_panel__ .igt-checkbox-wrap {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+#__igt_panel__ .igt-checkbox {
+  display: none; /* hide native, use custom box */
+}
+
+#__igt_panel__ .igt-checkbox-box {
+  width: 17px;
+  height: 17px;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+
+#__igt_panel__ .igt-checkbox:checked + .igt-checkbox-box {
+  background: #c13584;
+  border-color: #c13584;
+}
+
+#__igt_panel__ .igt-checkbox:checked + .igt-checkbox-box::after {
+  content: '';
+  width: 9px;
+  height: 5px;
+  border-left: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(-45deg) translateY(-1px);
+  display: block;
+}
+
+#__igt_panel__ .igt-checkbox-wrap:hover .igt-checkbox-box {
+  border-color: #c13584;
+}
+
+/* ── Single action button ── */
+#__igt_panel__ .igt-action-btn {
+  flex-shrink: 0;
+  padding: 5px 11px;
+  border: none;
+  border-radius: 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+#__igt_panel__ .igt-action-btn:hover:not(:disabled) { opacity: 0.8; transform: translateY(-1px); }
+#__igt_panel__ .igt-action-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+#__igt_panel__ .igt-action-btn--unfollow {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+#__igt_panel__ .igt-action-btn--follow {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+#__igt_panel__ .igt-action-btn--done {
+  background: #f0fdf4;
+  color: #15803d;
+  opacity: 0.7;
+}
+
+/* ── Done state — dim the row ── */
+#__igt_panel__ .igt-user--done {
+  opacity: 0.45;
+  pointer-events: none;
+}
