@@ -1,52 +1,38 @@
-// Initialize storage access level for content scripts
-chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' }).catch(() => {});
+// Single source of truth for panel open state
+// Content script NEVER writes storage directly — always goes through here
 
-// When user clicks the extension icon, inject/toggle the panel
+const KEY = 'igt_panel_open'
+
+// ── Icon click ────────────────────────────────────────────────────────────────
 chrome.action.onClicked.addListener(async (tab) => {
   if (!tab.id) return
 
-  // Not on Instagram — show toast on current page
+  // Not on Instagram — show toast
   if (!tab.url?.includes('instagram.com')) {
     await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       func: () => {
-        // Remove existing toast if any
         document.getElementById('__igt_toast__')?.remove()
-
         const toast = document.createElement('div')
         toast.id = '__igt_toast__'
-        toast.style.cssText = `
-          position: fixed;
-          bottom: 28px;
-          left: 50%;
-          transform: translateX(-50%) translateY(20px);
-          z-index: 2147483647;
-          background: #1a1a2e;
-          color: #fff;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          font-size: 14px;
-          font-weight: 500;
-          padding: 12px 20px 12px 16px;
-          border-radius: 12px;
-          box-shadow: 0 8px 32px rgba(0,0,0,0.35);
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          border: 1px solid rgba(255,255,255,0.1);
-          opacity: 0;
-          transition: opacity 0.25s ease, transform 0.25s ease;
-          max-width: 340px;
-          pointer-events: none;
-        `
+        toast.style.cssText = [
+          'position:fixed', 'bottom:28px', 'left:50%',
+          'transform:translateX(-50%) translateY(20px)',
+          'z-index:2147483647', 'background:#1a1a2e', 'color:#fff',
+          'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
+          'font-size:14px', 'font-weight:500', 'padding:12px 20px 12px 16px',
+          'border-radius:12px', 'box-shadow:0 8px 32px rgba(0,0,0,.35)',
+          'display:flex', 'align-items:center', 'gap:10px',
+          'border:1px solid rgba(255,255,255,.1)', 'opacity:0',
+          'transition:opacity .25s ease,transform .25s ease',
+          'max-width:340px', 'pointer-events:none',
+        ].join(';')
         toast.innerHTML = `
           <svg width="32" height="32" viewBox="0 0 48 48" fill="none" style="flex-shrink:0">
-            <defs>
-              <linearGradient id="tg" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stop-color="#f09433"/>
-                <stop offset="50%" stop-color="#dc2743"/>
-                <stop offset="100%" stop-color="#bc1888"/>
-              </linearGradient>
-            </defs>
+            <defs><linearGradient id="tg" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#f09433"/><stop offset="50%" stop-color="#dc2743"/>
+              <stop offset="100%" stop-color="#bc1888"/>
+            </linearGradient></defs>
             <rect width="48" height="48" rx="12" fill="url(#tg)"/>
             <rect x="9" y="9" width="30" height="30" rx="7" stroke="white" stroke-width="2.5" fill="none"/>
             <circle cx="24" cy="24" r="7.5" stroke="white" stroke-width="2.5" fill="none"/>
@@ -54,20 +40,13 @@ chrome.action.onClicked.addListener(async (tab) => {
           </svg>
           <div>
             <div style="font-weight:700;margin-bottom:2px">ต้องเปิดบน Instagram ก่อน</div>
-            <div style="font-size:12px;opacity:0.7">ไปที่ instagram.com แล้วกดอีกครั้ง</div>
-          </div>
-        `
+            <div style="font-size:12px;opacity:.7">ไปที่ instagram.com แล้วกดอีกครั้ง</div>
+          </div>`
         document.body.appendChild(toast)
-
-        // Animate in
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            toast.style.opacity = '1'
-            toast.style.transform = 'translateX(-50%) translateY(0)'
-          })
-        })
-
-        // Auto dismiss after 3s
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          toast.style.opacity = '1'
+          toast.style.transform = 'translateX(-50%) translateY(0)'
+        }))
         setTimeout(() => {
           toast.style.opacity = '0'
           toast.style.transform = 'translateX(-50%) translateY(10px)'
@@ -78,45 +57,47 @@ chrome.action.onClicked.addListener(async (tab) => {
     return
   }
 
-  // Toggle persisted open state
-  const key = 'igt_panel_open'
-  const data = await chrome.storage.session.get(key)
-  const isOpen = !!data[key]
-  await chrome.storage.session.set({ [key]: !isOpen })
+  // Toggle state
+  const { [KEY]: wasOpen } = await chrome.storage.session.get(KEY)
+  const nowOpen = !wasOpen
+  await chrome.storage.session.set({ [KEY]: nowOpen })
 
-  try {
-    await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_PANEL' })
-  } catch {
-    await chrome.scripting.insertCSS({ target: { tabId: tab.id }, files: ['content.css'] })
-    await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] })
-    setTimeout(async () => {
-      try { await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_PANEL' }) } catch {}
-    }, 200)
-  }
+  await injectAndSend(tab.id, nowOpen ? 'OPEN_PANEL' : 'CLOSE_PANEL_EXT')
 })
 
-// When a tab finishes loading, re-open panel if it was open before
+// ── Tab reload/navigate ───────────────────────────────────────────────────────
 chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
   if (info.status !== 'complete') return
   if (!tab.url?.includes('instagram.com')) return
 
-  const data = await chrome.storage.session.get('igt_panel_open')
-  if (!data.igt_panel_open) return
+  const { [KEY]: isOpen } = await chrome.storage.session.get(KEY)
+  if (!isOpen) return
 
+  await injectAndSend(tabId, 'OPEN_PANEL')
+})
+
+// ── Messages from content script ─────────────────────────────────────────────
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.type === 'PANEL_CLOSED') {
+    // User clicked X — clear state immediately
+    chrome.storage.session.set({ [KEY]: false })
+    sendResponse({ ok: true })
+  }
+  return true // keep channel open for async
+})
+
+// ── Helper ────────────────────────────────────────────────────────────────────
+async function injectAndSend(tabId, type) {
   try {
-    await chrome.tabs.sendMessage(tabId, { type: 'OPEN_PANEL' })
+    await chrome.tabs.sendMessage(tabId, { type })
   } catch {
-    await chrome.scripting.insertCSS({ target: { tabId }, files: ['content.css'] })
-    await chrome.scripting.executeScript({ target: { tabId }, files: ['content.js'] })
-    setTimeout(async () => {
-      try { await chrome.tabs.sendMessage(tabId, { type: 'OPEN_PANEL' }) } catch {}
-    }, 300)
+    try {
+      await chrome.scripting.insertCSS({ target: { tabId }, files: ['content.css'] })
+      await chrome.scripting.executeScript({ target: { tabId }, files: ['content.js'] })
+      await new Promise(r => setTimeout(r, 250))
+      await chrome.tabs.sendMessage(tabId, { type })
+    } catch (e) {
+      console.error('IGT inject failed:', e)
+    }
   }
-})
-
-// Handle manual close from content script
-chrome.runtime.onMessage.addListener((msg) => {
-  if (msg.type === 'CLOSE_PANEL') {
-    chrome.storage.session.set({ igt_panel_open: false })
-  }
-})
+}

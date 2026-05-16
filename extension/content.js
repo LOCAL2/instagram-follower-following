@@ -13,17 +13,29 @@
 
   chrome.runtime.onMessage.addListener((msg) => {
     if (msg.type === 'TOGGLE_PANEL') togglePanel()
-    if (msg.type === 'OPEN_PANEL')   openPanel()
+    if (msg.type === 'OPEN_PANEL')      openPanel()
+    if (msg.type === 'CLOSE_PANEL_EXT') closePanel()
   })
 
   function togglePanel() {
     const p = document.getElementById(PANEL_ID)
-    if (p) { p.remove(); return }
+    if (p) { closePanel(); return }
     createPanel()
   }
 
   function openPanel() {
     if (!document.getElementById(PANEL_ID)) createPanel()
+  }
+
+  function closePanel() {
+    const p = document.getElementById(PANEL_ID)
+    if (!p) return
+    p.remove()
+    followers.length = 0
+    following.length = 0
+    Object.keys(followState).forEach((k) => delete followState[k])
+    phase        = 'idle'
+    isOwnAccount = false
   }
 
   // ── Theme ─────────────────────────────────────────────────────────────────────
@@ -360,12 +372,9 @@
 
     document.getElementById('igt-close').onclick = () => {
       panel.remove()
-      // Dual-safety: Set storage directly AND notify background script
-      // Requires AccessLevel set in background.js to work from content script
-      chrome.storage.session.set({ igt_panel_open: false })
-      chrome.runtime.sendMessage({ type: 'CLOSE_PANEL' })
-
-      // Reset all data state so next open starts fresh
+      // Tell background (single source of truth) to clear state
+      chrome.runtime.sendMessage({ type: 'PANEL_CLOSED' })
+      // Reset local data
       followers.length = 0
       following.length = 0
       Object.keys(followState).forEach((k) => delete followState[k])
