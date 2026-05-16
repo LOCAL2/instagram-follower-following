@@ -325,9 +325,9 @@
     if (!wrap) return
     const list   = getFilteredList()
     const action = getActionType()
+    const q      = ($('igt-filter')?.value ?? '').trim()
 
     if (!list.length) {
-      const q = ($('igt-filter')?.value ?? '').trim()
       wrap.innerHTML = `<div class="igt-empty">${
         q ? `ไม่พบ "${q}"` : phase === 'done' ? '🎉 ไม่มีรายการ' : 'กำลังโหลด...'
       }</div>`
@@ -335,24 +335,31 @@
       return
     }
 
-    // Incremental append — only add new rows, don't re-render existing
+    // When filtering: full re-render so list matches query exactly
+    if (q) {
+      wrap.innerHTML = `<ul class="igt-list">${list.map((u) => userRow(u, action)).join('')}</ul>`
+      list.forEach((u) => bindRowEvents(u.pk, action))
+      renderBulkBar()
+      return
+    }
+
+    // No filter: incremental append — only add rows not yet in DOM
     const existingUids = new Set(
       [...wrap.querySelectorAll('.igt-user')].map((li) => li.dataset.uid)
     )
     const newItems = list.filter((u) => !existingUids.has(u.pk))
 
     if (existingUids.size === 0) {
-      wrap.innerHTML = `<ul class="igt-list" id="igt-ul"></ul>`
+      wrap.innerHTML = `<ul class="igt-list"></ul>`
     }
 
     const ul = wrap.querySelector('.igt-list')
     if (ul && newItems.length) {
       ul.insertAdjacentHTML('beforeend', newItems.map((u) => userRow(u, action)).join(''))
-      // Bind events for new rows only
       newItems.forEach((u) => bindRowEvents(u.pk, action))
     }
 
-    // Update state of existing rows (e.g. after action)
+    // Update state of all visible rows
     list.forEach((u) => updateRowState(u.pk, action))
 
     renderBulkBar()
