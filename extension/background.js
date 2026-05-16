@@ -1,9 +1,5 @@
-// Single source of truth for panel open state
-// Content script NEVER writes storage directly — always goes through here
+// Simple toggle — no state persistence across refreshes or tabs
 
-const KEY = 'igt_panel_open'
-
-// ── Icon click ────────────────────────────────────────────────────────────────
 chrome.action.onClicked.addListener(async (tab) => {
   if (!tab.id) return
 
@@ -16,21 +12,22 @@ chrome.action.onClicked.addListener(async (tab) => {
         const toast = document.createElement('div')
         toast.id = '__igt_toast__'
         toast.style.cssText = [
-          'position:fixed', 'bottom:28px', 'left:50%',
+          'position:fixed','bottom:28px','left:50%',
           'transform:translateX(-50%) translateY(20px)',
-          'z-index:2147483647', 'background:#1a1a2e', 'color:#fff',
+          'z-index:2147483647','background:#1a1a2e','color:#fff',
           'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
-          'font-size:14px', 'font-weight:500', 'padding:12px 20px 12px 16px',
-          'border-radius:12px', 'box-shadow:0 8px 32px rgba(0,0,0,.35)',
-          'display:flex', 'align-items:center', 'gap:10px',
-          'border:1px solid rgba(255,255,255,.1)', 'opacity:0',
+          'font-size:14px','font-weight:500','padding:12px 20px 12px 16px',
+          'border-radius:12px','box-shadow:0 8px 32px rgba(0,0,0,.35)',
+          'display:flex','align-items:center','gap:10px',
+          'border:1px solid rgba(255,255,255,.1)','opacity:0',
           'transition:opacity .25s ease,transform .25s ease',
-          'max-width:340px', 'pointer-events:none',
+          'max-width:340px','pointer-events:none',
         ].join(';')
         toast.innerHTML = `
           <svg width="32" height="32" viewBox="0 0 48 48" fill="none" style="flex-shrink:0">
             <defs><linearGradient id="tg" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="#f09433"/><stop offset="50%" stop-color="#dc2743"/>
+              <stop offset="0%" stop-color="#f09433"/>
+              <stop offset="50%" stop-color="#dc2743"/>
               <stop offset="100%" stop-color="#bc1888"/>
             </linearGradient></defs>
             <rect width="48" height="48" rx="12" fill="url(#tg)"/>
@@ -57,47 +54,14 @@ chrome.action.onClicked.addListener(async (tab) => {
     return
   }
 
-  // Toggle state
-  const { [KEY]: wasOpen } = await chrome.storage.session.get(KEY)
-  const nowOpen = !wasOpen
-  await chrome.storage.session.set({ [KEY]: nowOpen })
-
-  await injectAndSend(tab.id, nowOpen ? 'OPEN_PANEL' : 'CLOSE_PANEL_EXT')
-})
-
-// ── Tab reload/navigate ───────────────────────────────────────────────────────
-chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
-  if (info.status !== 'complete') return
-  if (!tab.url?.includes('instagram.com')) return
-
-  const { [KEY]: isOpen } = await chrome.storage.session.get(KEY)
-  if (!isOpen) return
-
-  await injectAndSend(tabId, 'OPEN_PANEL')
-})
-
-// ── Messages from content script ─────────────────────────────────────────────
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (msg.type === 'PANEL_CLOSED') {
-    // User clicked X — clear state immediately
-    chrome.storage.session.set({ [KEY]: false })
-    sendResponse({ ok: true })
-  }
-  return true // keep channel open for async
-})
-
-// ── Helper ────────────────────────────────────────────────────────────────────
-async function injectAndSend(tabId, type) {
+  // Toggle panel on current tab only
   try {
-    await chrome.tabs.sendMessage(tabId, { type })
+    await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_PANEL' })
   } catch {
-    try {
-      await chrome.scripting.insertCSS({ target: { tabId }, files: ['content.css'] })
-      await chrome.scripting.executeScript({ target: { tabId }, files: ['content.js'] })
-      await new Promise(r => setTimeout(r, 250))
-      await chrome.tabs.sendMessage(tabId, { type })
-    } catch (e) {
-      console.error('IGT inject failed:', e)
-    }
+    // Content script not ready — inject then toggle
+    await chrome.scripting.insertCSS({ target: { tabId: tab.id }, files: ['content.css'] })
+    await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] })
+    await new Promise(r => setTimeout(r, 250))
+    try { await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_PANEL' }) } catch {}
   }
-}
+})

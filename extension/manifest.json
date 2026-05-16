@@ -5,8 +5,7 @@
   "description": "ตรวจสอบว่าใครไม่ได้ follow กลับบน Instagram — คลิกไอคอน extension ขณะอยู่บน instagram.com",
   "permissions": [
     "activeTab",
-    "scripting",
-    "storage"
+    "scripting"
   ],
   "host_permissions": [
     "https://www.instagram.com/*",

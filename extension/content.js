@@ -13,18 +13,12 @@
 
   chrome.runtime.onMessage.addListener((msg) => {
     if (msg.type === 'TOGGLE_PANEL') togglePanel()
-    if (msg.type === 'OPEN_PANEL')      openPanel()
-    if (msg.type === 'CLOSE_PANEL_EXT') closePanel()
   })
 
   function togglePanel() {
     const p = document.getElementById(PANEL_ID)
     if (p) { closePanel(); return }
     createPanel()
-  }
-
-  function openPanel() {
-    if (!document.getElementById(PANEL_ID)) createPanel()
   }
 
   function closePanel() {
@@ -370,17 +364,7 @@
     document.body.appendChild(panel)
     applyTheme()
 
-    document.getElementById('igt-close').onclick = () => {
-      panel.remove()
-      // Tell background (single source of truth) to clear state
-      chrome.runtime.sendMessage({ type: 'PANEL_CLOSED' })
-      // Reset local data
-      followers.length = 0
-      following.length = 0
-      Object.keys(followState).forEach((k) => delete followState[k])
-      phase        = 'idle'
-      isOwnAccount = false
-    }
+    document.getElementById('igt-close').onclick = () => closePanel()
     document.getElementById('igt-theme-btn').onclick = toggleTheme
     document.getElementById('igt-form').onsubmit    = (e) => {
       e.preventDefault()
