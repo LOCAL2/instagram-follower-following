@@ -143,12 +143,8 @@
         const data = await igGet(path)
         const users = data.users ?? []
         if (users.length) {
-          // Prevent duplicates by checking PK before pushing
-          const currentPks = new Set(list.map(u => String(u.pk)))
-          const newEntries = users.filter(u => !currentPks.has(String(u.pk)))
-          list.push(...newEntries)
-          loaded += users.length // Use original batch length for progress tracking
-          onBatch(newEntries, loaded)
+          loaded += users.length
+          onBatch(users, loaded)
         }
         if (!data.next_max_id || loaded >= cap) break
         maxId   = data.next_max_id
@@ -731,7 +727,9 @@
 
       setStatus('กำลังโหลด ผู้ที่ติดตามคุณ (followers)...', true)
       await loadListStream('followers', userId, (batch, loaded) => {
-        followers.push(...batch)
+        const currentPks = new Set(followers.map(u => String(u.pk)))
+        const newEntries = batch.filter(u => !currentPks.has(String(u.pk)))
+        followers.push(...newEntries)
         fLoaded = loaded
         updateStatus()
         renderStats()
@@ -739,7 +737,9 @@
 
       setStatus('กำลังโหลด ผู้ที่คุณติดตาม (following)...', true)
       await loadListStream('following', userId, (batch, loaded) => {
-        following.push(...batch)
+        const currentPks = new Set(following.map(u => String(u.pk)))
+        const newEntries = batch.filter(u => !currentPks.has(String(u.pk)))
+        following.push(...newEntries)
         gLoaded = loaded
         updateStatus()
         renderStats()
