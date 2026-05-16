@@ -93,6 +93,26 @@
     return data.users?.find((r) => r.user.username.toLowerCase() === lower)?.user?.pk ?? null
   }
 
+  // Get the currently logged-in user's ID and username
+  async function getLoggedInUser() {
+    try {
+      // Instagram stores viewer info in a meta tag or window object
+      const data = await igGet('/api/v1/accounts/current_user/?edit=true')
+      return {
+        pk: data.user?.pk ?? null,
+        username: data.user?.username?.toLowerCase() ?? null,
+      }
+    } catch {
+      // Fallback: read from page meta
+      try {
+        const meta = document.querySelector('meta[property="al:ios:url"]')
+        const match = meta?.content?.match(/user\?id=(\d+)/)
+        if (match) return { pk: match[1], username: null }
+      } catch {}
+      return { pk: null, username: null }
+    }
+  }
+
   // Get follower/following counts to show accurate progress
   async function getUserInfo(userId) {
     try {
@@ -308,7 +328,17 @@
     document.body.appendChild(panel)
     applyTheme()
 
-    document.getElementById('igt-close').onclick    = () => panel.remove()
+    document.getElementById('igt-close').onclick = () => {
+      panel.remove()
+      // Clear persisted open state so panel doesn't reopen on refresh
+      chrome.storage.session.set({ igt_panel_open: false })
+      // Reset all data state so next open starts fresh
+      followers.length = 0
+      following.length = 0
+      Object.keys(followState).forEach((k) => delete followState[k])
+      phase        = 'idle'
+      isOwnAccount = false
+    }
     document.getElementById('igt-theme-btn').onclick = toggleTheme
     document.getElementById('igt-form').onsubmit    = (e) => {
       e.preventDefault()
@@ -332,10 +362,11 @@
   }
 
   // ── State ─────────────────────────────────────────────────────────────────────
-  let followers  = []
-  let following  = []
-  let phase      = 'idle'
-  let activeTab  = 'notBack'
+  let followers     = []
+  let following     = []
+  let phase         = 'idle'
+  let activeTab     = 'notBack'
+  let isOwnAccount  = false   // true only when searching your own account
   const followState = {} // uid → null | 'pending' | 'done'
 
   // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -355,14 +386,12 @@
   }
 
   function getFilteredList() {
-    const fSet = new Set(followers.map((u) => u.username.toLowerCase()))
-    const gSet = new Set(following.map((u) => u.username.toLowerCase()))
-    const fMap = new Map(followers.map((u) => [u.username.toLowerCase(), u]))
-    const gMap = new Map(following.map((u) => [u.username.toLowerCase(), u]))
+    const fSet = new Set(followers.map((u) => String(u.pk)))
+    const gSet = new Set(following.map((u) => String(u.pk)))
 
     const list = activeTab === 'notBack'
-      ? [...gSet].filter((u) => !fSet.has(u)).map((u) => gMap.get(u))
-      : [...fSet].filter((u) => !gSet.has(u)).map((u) => fMap.get(u))
+      ? following.filter((u) => !fSet.has(String(u.pk)))
+      : followers.filter((u) => !gSet.has(String(u.pk)))
 
     const q = ($('igt-filter')?.value ?? '').toLowerCase().trim()
     if (!q) return list
@@ -378,10 +407,10 @@
 
   // ── Render stats ──────────────────────────────────────────────────────────────
   function renderStats() {
-    const fSet = new Set(followers.map((u) => u.username.toLowerCase()))
-    const gSet = new Set(following.map((u) => u.username.toLowerCase()))
-    const nb   = [...gSet].filter((u) => !fSet.has(u)).length
-    const id   = [...fSet].filter((u) => !gSet.has(u)).length
+    const fSet = new Set(followers.map((u) => String(u.pk)))
+    const gSet = new Set(following.map((u) => String(u.pk)))
+    const nb   = following.filter((u) => !fSet.has(String(u.pk))).length
+    const id   = followers.filter((u) => !gSet.has(String(u.pk))).length
 
     const el = $('igt-stats')
     if (el) el.innerHTML = `
@@ -398,6 +427,13 @@
   function renderBulkBar() {
     const bar = $('igt-bulk-bar')
     if (!bar) return
+    if (!isOwnAccount) {
+      bar.innerHTML = ''
+      bar.style.display = 'none'
+      return
+    }
+    bar.style.display = 'flex'
+
     const list     = getFilteredList()
     const action   = getActionType()
     const checked  = [...document.querySelectorAll(`#${PANEL_ID} .igt-cb:checked`)]
@@ -432,19 +468,31 @@
   function renderList() {
     const wrap = $('igt-list-wrap')
     if (!wrap) return
-    const list   = getFilteredList()
     const action = getActionType()
     const q      = ($('igt-filter')?.value ?? '').trim()
 
+    // During loading: don't show list yet — diff is incomplete and will be wrong
+    if (phase !== 'done') {
+      wrap.innerHTML = `<div class="igt-hint">
+        <div style="font-size:28px;margin-bottom:8px">⏳</div>
+        กำลังโหลดข้อมูล...<br/>
+        <span style="font-size:11px;opacity:0.6">ผลลัพธ์จะแสดงเมื่อโหลดครบ</span>
+      </div>`
+      renderBulkBar()
+      return
+    }
+
+    const list = getFilteredList()
+
     if (!list.length) {
       wrap.innerHTML = `<div class="igt-empty">${
-        q ? `ไม่พบ "${q}"` : phase === 'done' ? '🎉 ไม่มีรายการ' : 'กำลังโหลด...'
+        q ? `ไม่พบ "${q}"` : '🎉 ไม่มีรายการ'
       }</div>`
       renderBulkBar()
       return
     }
 
-    // When filtering: full re-render so list matches query exactly
+    // When filtering: full re-render
     if (q) {
       wrap.innerHTML = `<ul class="igt-list">${list.map((u) => userRow(u, action)).join('')}</ul>`
       list.forEach((u) => bindRowEvents(u.pk, action))
@@ -452,16 +500,7 @@
       return
     }
 
-    // No filter: incremental append — only add rows not yet in DOM
-    // During parallel loading, do full re-render since diff changes every batch
-    if (phase !== 'done') {
-      wrap.innerHTML = `<ul class="igt-list">${list.map((u) => userRow(u, action)).join('')}</ul>`
-      list.forEach((u) => bindRowEvents(u.pk, action))
-      renderBulkBar()
-      return
-    }
-
-    // Done: incremental append — only add rows not yet in DOM
+    // Done + no filter: incremental append
     const existingUids = new Set(
       [...wrap.querySelectorAll('.igt-user')].map((li) => li.dataset.uid)
     )
@@ -488,25 +527,34 @@
     const cls   = action === 'unfollow' ? 'igt-action-btn--unfollow' : 'igt-action-btn--follow'
     const state = followState[u.pk]
     const done  = state === 'done'
-    return `
-      <li class="igt-user${done ? ' igt-user--done' : ''}" data-uid="${u.pk}">
+
+    // Only show checkbox + action button when viewing own account
+    const actionHtml = isOwnAccount ? `
         <label class="igt-cb-wrap" aria-label="เลือก @${u.username}">
           <input type="checkbox" class="igt-cb" data-uid="${u.pk}" ${done ? 'disabled' : ''}/>
           <span class="igt-cb-box"></span>
-        </label>
+        </label>` : ''
+
+    const btnHtml = isOwnAccount ? `
+        <button class="igt-action-btn ${done ? 'igt-action-btn--done' : cls}"
+          data-uid="${u.pk}" data-action="${action}"
+          ${state === 'pending' || done ? 'disabled' : ''}
+          aria-label="${label} @${u.username}">
+          ${done ? (action === 'unfollow' ? 'Unfollowed ✓' : 'Followed ✓') : state === 'pending' ? '...' : label}
+        </button>` : ''
+
+    return `
+      <li class="igt-user${done ? ' igt-user--done' : ''}" data-uid="${u.pk}">
+        ${actionHtml}
         <img class="igt-avatar" src="${u.profile_pic_url}" loading="lazy"
           onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(u.username)}&size=40&background=random'" alt=""/>
         <div class="igt-info">
           <a class="igt-uname" href="https://www.instagram.com/${u.username}/" target="_blank">@${u.username}</a>
           ${u.full_name ? `<span class="igt-fname">${u.full_name}</span>` : ''}
         </div>
-        <button class="igt-action-btn ${done ? 'igt-action-btn--done' : cls}"
-          data-uid="${u.pk}" data-action="${action}"
-          ${state === 'pending' || done ? 'disabled' : ''}
-          aria-label="${label} @${u.username}">
-          ${done ? (action === 'unfollow' ? 'Unfollowed ✓' : 'Followed ✓') : state === 'pending' ? '...' : label}
-        </button>
+        ${btnHtml}
       </li>`
+  }
   }
 
   function bindRowEvents(uid, action) {
@@ -606,9 +654,21 @@
     if (main) { main.style.display = 'flex'; $('igt-list-wrap').innerHTML = '' }
 
     try {
-      setStatus('กำลังค้นหา user ID...', true)
-      const userId = await getUserId(username)
-      if (!userId) throw new Error(`ไม่พบ username "${username}"`)
+      setStatus('กำลังค้นหา...', true)
+      
+      // Get target user ID and logged-in user info in parallel
+      const [targetId, loggedIn] = await Promise.all([
+        getUserId(username),
+        getLoggedInUser()
+      ])
+
+      if (!targetId) throw new Error(`ไม่พบ username "${username}"`)
+      
+      // Check if searching own account
+      isOwnAccount = (String(targetId) === String(loggedIn.pk)) || 
+                     (loggedIn.username === username.toLowerCase())
+
+      const userId = targetId
 
       // Get counts for progress display
       setStatus('กำลังดึงข้อมูล...', true)
