@@ -143,8 +143,12 @@
         const data = await igGet(path)
         const users = data.users ?? []
         if (users.length) {
-          onBatch(users, loaded + users.length)
-          loaded += users.length
+          // Prevent duplicates by checking PK before pushing
+          const currentPks = new Set(list.map(u => String(u.pk)))
+          const newEntries = users.filter(u => !currentPks.has(String(u.pk)))
+          list.push(...newEntries)
+          loaded += users.length // Use original batch length for progress tracking
+          onBatch(newEntries, loaded)
         }
         if (!data.next_max_id || loaded >= cap) break
         maxId   = data.next_max_id
@@ -756,12 +760,18 @@
             try {
               const res = await igPost('/api/v1/friendships/show_many/', `user_ids=${chunkIds}`)
               if (res && res.friendship_statuses) {
+                const currentFwPks = new Set(followers.map(u => String(u.pk)))
                 for (const pk in res.friendship_statuses) {
-                  if (res.friendship_statuses[pk].followed_by) {
+                  const status = res.friendship_statuses[pk]
+                  if (status.followed_by) {
                     // This user actually follows us! Rescue them!
-                    const u = chunk.find((c) => String(c.pk) === pk)
-                    if (u) {
-                      followers.push(u)
+                    // ONLY if they are not already in the followers list
+                    if (!currentFwPks.has(String(pk))) {
+                      const u = chunk.find((c) => String(c.pk) === pk)
+                      if (u) {
+                        followers.push(u)
+                        currentFwPks.add(String(pk))
+                      }
                     }
                   }
                 }
