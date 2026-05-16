@@ -134,7 +134,6 @@
     let maxId   = ''
     let loaded  = 0
     let retries = 0
-    console.log(`[IGT] start loading ${list}`)
     while (true) {
       try {
         let path = `/api/v1/friendships/${userId}/${list}/?count=50`
@@ -145,7 +144,6 @@
           onBatch(users, loaded + users.length)
           loaded += users.length
         }
-        console.log(`[IGT] ${list} page loaded: ${users.length}, total: ${loaded}, more: ${!!data.next_max_id}`)
         if (!data.next_max_id || loaded >= cap) break
         maxId   = data.next_max_id
         retries = 0
@@ -158,7 +156,6 @@
         } else { throw err }
       }
     }
-    console.log(`[IGT] done loading ${list}: ${loaded} total`)
   }
 
   // ── Live page DOM update ──────────────────────────────────────────────────────
@@ -751,15 +748,6 @@
       $('igt-list-wrap').innerHTML = ''
       renderStats()
       renderList()
-
-      // Debug log — compare with original source
-      const followerSet = new Set(followers.map(u => u.username.toLowerCase()))
-      const followingSet = new Set(following.map(u => u.username.toLowerCase()))
-      const notFollowingBack = [...followingSet].filter(u => !followerSet.has(u))
-      const iDontFollowBack  = [...followerSet].filter(u => !followingSet.has(u))
-      console.log(`[IGT] followers: ${followerSet.size}, following: ${followingSet.size}`)
-      console.log(`[IGT] NotFollowingMeBack: ${notFollowingBack.length}`, notFollowingBack.slice(0,5))
-      console.log(`[IGT] IDontFollowBack: ${iDontFollowBack.length}`, iDontFollowBack.slice(0,5))
 
     } catch (err) {
       setProgress(false)
