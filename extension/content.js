@@ -137,29 +137,100 @@
   // ── Live page DOM update ──────────────────────────────────────────────────────
   // After follow/unfollow, update Instagram's own UI without page reload
 
-  function updatePageFollowButton(userId, action) {
-    // Find follow/unfollow buttons in the page that match this user
-    // Instagram renders buttons with aria-label or data attributes
+  // Force Instagram's React router to re-fetch current page data
+  // by pushing a dummy history state then immediately popping it
+  function triggerIGRerender() {
     try {
-      // Profile page: main follow button
-      const btns = [...document.querySelectorAll('button')]
-      btns.forEach((btn) => {
+      const cur = window.location.href
+      // Push same URL to trigger React Router's route change handler
+      window.history.pushState({}, '', cur)
+      window.dispatchEvent(new PopStateEvent('popstate', { state: {} }))
+      // Instagram uses its own router — also try their internal navigation event
+      window.dispatchEvent(new CustomEvent('locationchange'))
+    } catch (_) {}
+  }
+
+  // Update Instagram's own page UI after follow/unfollow
+  // Uses React internal props to trigger state update without page reload
+  function updatePageFollowButton(userId, action) {
+    try {
+      // Strategy 1: Find buttons via React fiber and trigger their onClick
+      // This works for profile pages, explore, reels, etc.
+      const allBtns = [...document.querySelectorAll('button')]
+
+      for (const btn of allBtns) {
         const txt = btn.textContent.trim().toLowerCase()
-        if (action === 'unfollow' && (txt === 'following' || txt === 'requested')) {
-          // Only click if it's the profile page for this user
-          const url = window.location.pathname
-          if (url.includes('/') && btn.closest('header, [role="main"]')) {
-            btn.click()
-            // Instagram shows a confirm dialog — auto-confirm it
-            setTimeout(() => {
-              const confirmBtn = [...document.querySelectorAll('button')]
-                .find((b) => b.textContent.trim().toLowerCase() === 'unfollow')
-              if (confirmBtn) confirmBtn.click()
-            }, 400)
+
+        // Find the React fiber key on this element
+        const fiberKey = Object.keys(btn).find(
+          (k) => k.startsWith('__reactFiber') || k.startsWith('__reactInternalInstance')
+        )
+        if (!fiberKey) continue
+
+        // Walk fiber tree to find onClick with follow/unfollow logic
+        let fiber = btn[fiberKey]
+        let depth = 0
+        while (fiber && depth < 20) {
+          const props = fiber.memoizedProps || fiber.pendingProps
+          if (props?.onClick) {
+            // Check if this button is a follow/unfollow button by text
+            if (action === 'unfollow' && (txt === 'following' || txt === 'requested')) {
+              // Simulate click via React's synthetic event system
+              btn.click()
+              // Auto-confirm the unfollow dialog that Instagram shows
+              setTimeout(() => {
+                const confirmBtns = [...document.querySelectorAll('button')]
+                const confirmBtn = confirmBtns.find((b) => {
+                  const t = b.textContent.trim().toLowerCase()
+                  return t === 'unfollow' || t === 'ยกเลิกการติดตาม'
+                })
+                if (confirmBtn) confirmBtn.click()
+              }, 500)
+              break
+            }
+            if (action === 'follow' && (txt === 'follow' || txt === 'follow back' || txt === 'ติดตาม')) {
+              btn.click()
+              break
+            }
           }
+          fiber = fiber.return
+          depth++
         }
-      })
-    } catch (_) { /* silent — page update is best-effort */ }
+      }
+
+      // Strategy 2: Dispatch custom event so Instagram's React tree re-renders
+      // Instagram listens to these events to sync follow state across components
+      window.dispatchEvent(new CustomEvent('ig_follow_state_change', {
+        detail: { userId, action }
+      }))
+
+      // Strategy 3: Find and update follow button state via data attributes
+      // Instagram sometimes uses data-testid or aria-label
+      const selectors = [
+        `[data-testid="follow-button"]`,
+        `[aria-label="Follow"]`,
+        `[aria-label="Following"]`,
+        `[aria-label="Unfollow"]`,
+        `[aria-label="ติดตาม"]`,
+        `[aria-label="กำลังติดตาม"]`,
+      ]
+      for (const sel of selectors) {
+        const el = document.querySelector(sel)
+        if (!el) continue
+        const t = el.textContent.trim().toLowerCase()
+        if (action === 'unfollow' && (t === 'following' || t === 'กำลังติดตาม')) {
+          el.click()
+          setTimeout(() => {
+            const confirm = [...document.querySelectorAll('button')]
+              .find((b) => ['unfollow', 'ยกเลิกการติดตาม'].includes(b.textContent.trim().toLowerCase()))
+            if (confirm) confirm.click()
+          }, 500)
+        }
+        if (action === 'follow' && (t === 'follow' || t === 'ติดตาม')) {
+          el.click()
+        }
+      }
+    } catch (_) { /* silent */ }
   }
 
   // ── Panel HTML ────────────────────────────────────────────────────────────────
@@ -484,8 +555,11 @@
       else                       await igPost(`/api/v1/friendships/create/${uid}/`)
       followState[uid] = 'done'
       updateRowState(uid, action)
-      // Best-effort: update Instagram's own page UI
+      // Update Instagram's own page UI
       updatePageFollowButton(uid, action)
+      // Force Instagram's React to re-render follow state by pushing/popping history
+      // This is the most reliable way to sync UI without full page reload
+      setTimeout(() => triggerIGRerender(), 600)
     } catch (err) {
       followState[uid] = null
       updateRowState(uid, action)
