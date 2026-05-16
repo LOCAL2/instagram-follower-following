@@ -1,0 +1,365 @@
+/* Instagram Follower Tracker — injected panel styles */
+/* All selectors are prefixed with #__igt_panel__ to avoid conflicts */
+
+#__igt_panel__ {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 380px;
+  max-width: 100vw;
+  height: 100vh;
+  background: #fff;
+  box-shadow: -4px 0 32px rgba(0, 0, 0, 0.18);
+  z-index: 2147483647;
+  display: flex;
+  flex-direction: column;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 14px;
+  color: #333;
+  border-left: 1px solid #e0e0e0;
+  animation: igt-slide-in 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes igt-slide-in {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+@media (max-width: 480px) {
+  #__igt_panel__ {
+    width: 100vw;
+    border-left: none;
+  }
+}
+
+#__igt_panel__ * {
+  box-sizing: border-box;
+}
+
+/* Header */
+#__igt_panel__ .igt-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  flex-shrink: 0;
+}
+
+#__igt_panel__ .igt-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#__igt_panel__ .igt-logo {
+  width: 36px;
+  height: 36px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px;
+  flex-shrink: 0;
+}
+
+#__igt_panel__ .igt-logo svg {
+  width: 100%;
+  height: 100%;
+}
+
+#__igt_panel__ .igt-title {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+#__igt_panel__ .igt-subtitle {
+  color: rgba(255,255,255,0.8);
+  font-size: 11px;
+}
+
+#__igt_panel__ .igt-close {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: #fff;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+#__igt_panel__ .igt-close:hover {
+  background: rgba(255,255,255,0.35);
+}
+
+/* Body */
+#__igt_panel__ .igt-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Form */
+#__igt_panel__ .igt-form {
+  display: flex;
+  gap: 8px;
+}
+
+#__igt_panel__ .igt-input-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  background: #fafafa;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+#__igt_panel__ .igt-input-wrap:focus-within {
+  border-color: #c13584;
+}
+
+#__igt_panel__ .igt-at {
+  padding: 0 4px 0 12px;
+  color: #999;
+  font-weight: 500;
+  user-select: none;
+}
+
+#__igt_panel__ .igt-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 10px 12px 10px 4px;
+  font-size: 14px;
+  color: #111;
+  font-family: inherit;
+  min-width: 0;
+}
+
+#__igt_panel__ .igt-input::placeholder {
+  color: #bbb;
+}
+
+#__igt_panel__ .igt-btn {
+  flex-shrink: 0;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #dc2743, #bc1888);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+#__igt_panel__ .igt-btn:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+#__igt_panel__ .igt-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Status */
+#__igt_panel__ .igt-status {
+  font-size: 13px;
+  color: #888;
+  text-align: center;
+  min-height: 18px;
+}
+
+/* Progress */
+#__igt_panel__ .igt-progress-wrap {
+  padding: 0 4px;
+}
+
+#__igt_panel__ .igt-progress-bar {
+  height: 5px;
+  background: #eee;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+#__igt_panel__ .igt-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f09433, #dc2743, #bc1888);
+  border-radius: 99px;
+  animation: igt-progress 1.6s ease-in-out infinite;
+}
+
+@keyframes igt-progress {
+  0%   { width: 20%; margin-left: 0; }
+  50%  { width: 60%; margin-left: 20%; }
+  100% { width: 20%; margin-left: 80%; }
+}
+
+/* Error */
+#__igt_panel__ .igt-error {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 13px;
+}
+
+/* Stats */
+#__igt_panel__ .igt-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+#__igt_panel__ .igt-stat {
+  background: #f8f7fb;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 12px 8px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+#__igt_panel__ .igt-stat-n {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111;
+  line-height: 1;
+}
+
+#__igt_panel__ .igt-stat-l {
+  font-size: 10px;
+  color: #888;
+}
+
+#__igt_panel__ .igt-stat.danger .igt-stat-n { color: #ef4444; }
+#__igt_panel__ .igt-stat.accent .igt-stat-n { color: #c13584; }
+
+/* Tabs */
+#__igt_panel__ .igt-tabs {
+  display: flex;
+  border-bottom: 2px solid #eee;
+  gap: 0;
+}
+
+#__igt_panel__ .igt-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 8px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+  font-family: inherit;
+}
+
+#__igt_panel__ .igt-tab:hover { color: #333; }
+
+#__igt_panel__ .igt-tab.active {
+  color: #c13584;
+  border-bottom-color: #c13584;
+}
+
+#__igt_panel__ .igt-badge {
+  background: #f0eef4;
+  color: #888;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 99px;
+}
+
+#__igt_panel__ .igt-tab.active .igt-badge {
+  background: rgba(193,53,132,0.12);
+  color: #c13584;
+}
+
+/* User list */
+#__igt_panel__ .igt-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#__igt_panel__ .igt-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 6px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+
+#__igt_panel__ .igt-user:hover { background: #f5f5f5; }
+
+#__igt_panel__ .igt-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #eee;
+}
+
+#__igt_panel__ .igt-info {
+  flex: 1;
+  min-width: 0;
+}
+
+#__igt_panel__ .igt-uname {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111;
+  text-decoration: none;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#__igt_panel__ .igt-uname:hover { color: #c13584; }
+
+#__igt_panel__ .igt-fname {
+  font-size: 11px;
+  color: #888;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Empty */
+#__igt_panel__ .igt-empty {
+  text-align: center;
+  padding: 32px 16px;
+  color: #aaa;
+  font-size: 14px;
+}
