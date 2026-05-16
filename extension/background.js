@@ -1,3 +1,6 @@
+// Initialize storage access level for content scripts
+chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' }).catch(() => {});
+
 // When user clicks the extension icon, inject/toggle the panel
 chrome.action.onClicked.addListener(async (tab) => {
   if (!tab.id) return
@@ -108,5 +111,12 @@ chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
     setTimeout(async () => {
       try { await chrome.tabs.sendMessage(tabId, { type: 'OPEN_PANEL' }) } catch {}
     }, 300)
+  }
+})
+
+// Handle manual close from content script
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg.type === 'CLOSE_PANEL') {
+    chrome.storage.session.set({ igt_panel_open: false })
   }
 })

@@ -360,8 +360,11 @@
 
     document.getElementById('igt-close').onclick = () => {
       panel.remove()
-      // Set storage directly — more reliable than messaging background service worker
+      // Dual-safety: Set storage directly AND notify background script
+      // Requires AccessLevel set in background.js to work from content script
       chrome.storage.session.set({ igt_panel_open: false })
+      chrome.runtime.sendMessage({ type: 'CLOSE_PANEL' })
+
       // Reset all data state so next open starts fresh
       followers.length = 0
       following.length = 0
