@@ -91,13 +91,10 @@ const HOW_STEPS = [
   { n: '3', title: 'คลิกไอคอน & ตรวจสอบ',   desc: 'กดไอคอน extension ที่ toolbar กรอก username แล้วดูผลลัพธ์ได้ทันที' },
 ]
 
-type StepType = 'download' | 'copy' | 'text' | 'done'
 const INSTALL_STEPS: { num: string; title: string; desc: string; type: StepType; copyText?: string }[] = [
-  { num: '01', title: 'ดาวน์โหลด Extension',  desc: 'กดปุ่มด้านล่างเพื่อดาวน์โหลดไฟล์ แล้วแตก zip ออกมา',                          type: 'download' },
-  { num: '02', title: 'เปิด Chrome Extensions',desc: 'พิมพ์ในแถบ address bar แล้วกด Enter',                                          type: 'copy', copyText: 'chrome://extensions' },
-  { num: '03', title: 'เปิด Developer Mode',   desc: 'มุมขวาบนของหน้า Extensions เปิด toggle "Developer mode"',                      type: 'text' },
-  { num: '04', title: 'Load Unpacked',          desc: 'กดปุ่ม "Load unpacked" แล้วเลือกโฟลเดอร์ extension ที่แตกไฟล์ไว้',           type: 'text' },
-  { num: '05', title: 'พร้อมใช้งาน',           desc: 'ไปที่ instagram.com แล้วคลิกไอคอน extension ที่ toolbar ได้เลย',              type: 'done' },
+  { num: '01', title: 'ดาวน์โหลด Extension',  desc: 'กดปุ่มด้านล่างเพื่อดาวน์โหลดไฟล์ extension.zip',                          type: 'download' },
+  { num: '02', title: 'ไปที่หน้า Extensions', desc: 'คัดลอก chrome://extensions ไปวางในช่อง address bar แล้วเปิด Developer Mode ขวาบน', type: 'copy', copyText: 'chrome://extensions' },
+  { num: '03', title: 'ลากไฟล์ลงมาวาง',         desc: 'ลากไฟล์ extension.zip ที่ดาวน์โหลดมา วางลงในหน้า Extensions ได้ทันที',           type: 'text' },
 ]
 
 const CARD_ITEMS = ['ฟรี 100%', 'ไม่เก็บข้อมูล', 'ไม่ต้อง login ใหม่', 'รองรับ account ขนาดใหญ่']
@@ -245,7 +242,7 @@ export default function App() {
       <section className="section sec-install" id="install" aria-labelledby="inst-h">
         <div className="sec-inner">
           <p className="sec-label">ติดตั้ง</p>
-          <h2 className="sec-title" id="inst-h">ติดตั้งใน 5 ขั้นตอน</h2>
+          <h2 className="sec-title" id="inst-h">ติดตั้งใน 3 ขั้นตอน</h2>
           <p className="sec-desc">ยังไม่ได้อยู่บน Chrome Web Store — ติดตั้งแบบ Developer Mode ได้เลย</p>
           <div className="inst-grid">
             <ol className="inst-list">
