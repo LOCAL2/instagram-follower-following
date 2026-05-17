@@ -149,9 +149,30 @@
 .mockup-stat-l { font-size: 9px; color: var(--text-3); }
 .mockup-stat--red    .mockup-stat-n { color: var(--red); }
 .mockup-stat--purple .mockup-stat-n { color: var(--accent-l); }
-.mockup-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-top: 10px; }
-.mockup-tab { font-size: 10px; font-weight: 500; color: var(--text-3); padding: 4px 8px; border-radius: 6px; }
-.mockup-tab--on { background: rgba(99,102,241,.15); color: var(--accent-l); }
+.mockup-tabs {
+  display: flex;
+  gap: 4px;
+  background: rgba(0,0,0,0.25);
+  border-radius: 10px;
+  padding: 4px;
+  margin-top: 14px;
+  margin-bottom: 4px;
+}
+.mockup-tab {
+  flex: 1;
+  text-align: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-3);
+  padding: 7px 4px;
+  border-radius: 7px;
+  white-space: nowrap;
+}
+.mockup-tab--on {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
 .mockup-user-list { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
 .mockup-user { display: flex; align-items: center; gap: 8px; padding: 5px 4px; border-radius: 6px; transition: background 0.2s; }
 .mockup-user:hover { background: rgba(255,255,255,0.03); }
