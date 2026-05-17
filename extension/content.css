@@ -16,27 +16,37 @@
 }
 
 /* ── Split Layout Mode ── */
-html.igt-split-active,
-html.igt-split-active body {
-  width: 100% !important;
-  margin: 0 !important;
-  padding-right: 380px !important;
-  box-sizing: border-box !important;
-  transition: padding-right 0.3s cubic-bezier(0.4,0,0.2,1) !important;
+html.igt-split-active {
+  display: flex !important;
+  flex-direction: row !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  overflow: hidden !important;
 }
 
-/* Ensure fixed elements that might be using left: 0 or width: 100% also respect the space */
-html.igt-split-active body > div[style*="fixed"],
-html.igt-split-active body > header {
-  width: calc(100% - 380px) !important;
-  left: 0 !important;
+html.igt-split-active body {
+  flex: 1 !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  position: relative !important;
+  
+  /* Create local containing block for fixed elements! */
+  transform: translate(0) !important; 
+  transition: none !important;
 }
 
 html.igt-split-active #__igt_panel__ {
-  box-shadow: none;
-  border-left: 1px solid var(--border);
-  margin-right: 0 !important;
+  position: relative !important;
+  flex: 0 0 380px !important;
+  height: 100% !important;
   width: 380px !important;
+  box-shadow: none !important;
+  border-left: 1px solid var(--border);
+  margin: 0 !important;
 }
 
 @keyframes igt-slide-in {
