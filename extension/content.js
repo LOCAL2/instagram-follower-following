@@ -30,6 +30,25 @@
     Object.keys(followState).forEach((k) => delete followState[k])
     phase        = 'idle'
     isOwnAccount = false
+    document.documentElement.classList.remove('igt-split-active')
+  }
+
+  // ── Split Layout ──────────────────────────────────────────────────────────────
+  let isSplit = localStorage.getItem('igt_split') === 'true'
+
+  function applySplit() {
+    document.documentElement.classList.toggle('igt-split-active', isSplit)
+    const btn = $('igt-split-btn')
+    if (btn) {
+      btn.style.color = isSplit ? 'var(--accent)' : '#fff'
+      btn.style.background = isSplit ? 'var(--bg)' : 'rgba(255,255,255,0.18)'
+    }
+  }
+
+  function toggleSplit() {
+    isSplit = !isSplit
+    localStorage.setItem('igt_split', isSplit)
+    applySplit()
   }
 
   // ── Theme ─────────────────────────────────────────────────────────────────────
@@ -59,6 +78,12 @@
       : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
          </svg>`
+  }
+
+  function splitIcon() {
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+             <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M15 3v18"/>
+           </svg>`
   }
 
   // ── Instagram API ─────────────────────────────────────────────────────────────
@@ -166,7 +191,7 @@
         if (isBlock && retries < 4) {
           retries++
           const wait = retries * 5000
-          setStatus(`IG จำกัดการเข้าถึง (ชั่วคราว) — รอ ${wait/1000}s...`, 'loading')
+          setStatus(`Ingress throttling detected — executing backoff ${wait/1000}s (retry ${retries}/3)`, 'warning')
           await sleep(wait)
         } else { throw err }
       }
@@ -290,6 +315,9 @@
           <div class="igt-header-sub">Instagram</div>
         </div>
         <div class="igt-header-actions">
+          <button class="igt-icon-btn" id="igt-split-btn" title="Toggle Split View" aria-label="Toggle Split View">
+            ${splitIcon()}
+          </button>
           <button class="igt-icon-btn" id="igt-theme-btn" title="Toggle theme" aria-label="Toggle theme">
             ${themeIcon()}
           </button>
@@ -346,9 +374,11 @@
     `
     document.body.appendChild(panel)
     applyTheme()
+    applySplit()
 
     document.getElementById('igt-close').onclick = () => closePanel()
     document.getElementById('igt-theme-btn').onclick = toggleTheme
+    document.getElementById('igt-split-btn').onclick = toggleSplit
     document.getElementById('igt-form').onsubmit    = (e) => {
       e.preventDefault()
       const u = document.getElementById('igt-input').value.trim()
@@ -384,15 +414,22 @@
   // ── Helpers ───────────────────────────────────────────────────────────────────
   const $  = (id) => document.getElementById(id)
 
+  // Status types: 'loading' | 'success' | 'error' | 'info' | 'warning'
+  const STATUS_ICONS = {
+    loading: `<span class="igt-spinner"></span>`,
+    success: `<svg class="igt-status-icon success" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    error:   `<svg class="igt-status-icon error"   viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3.5M8 11h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+    warning: `<svg class="igt-status-icon warning" viewBox="0 0 16 16" fill="none"><path d="M8 2L14 13H2L8 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6v3M8 11h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+    info:    `<svg class="igt-status-icon info"    viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M8 7v4M8 5h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+  }
+
   function setStatus(text, type = 'info') {
     const bar = $('igt-status-bar')
     if (!bar) return
-    
-    let icon = ''
-    if (type === 'loading') icon = '<span class="igt-spinner"></span>'
-    
-    bar.innerHTML = `${icon}${text}`
-    bar.style.opacity = text ? '1' : '0'
+    if (!text) { bar.innerHTML = ''; bar.className = 'igt-status-bar'; return }
+    const icon = STATUS_ICONS[type] || ''
+    bar.innerHTML = `${icon}<span class="igt-status-text">${text}</span>`
+    bar.className = `igt-status-bar igt-status-bar--${type}`
   }
 
   function setProgress(v) {
@@ -492,8 +529,8 @@
     // During loading: don't show list yet — diff is incomplete and will be wrong
     if (phase !== 'done') {
       wrap.innerHTML = `<div class="igt-hint">
-        กำลังโหลดข้อมูล...<br/>
-        <span style="font-size:11px;opacity:0.6">ผลลัพธ์จะแสดงเมื่อโหลดครบ</span>
+        Retrieving remote graph data...<br/>
+        <span style="font-size:11px;opacity:0.6">Synchronizing local state with remote ledger</span>
       </div>`
       renderBulkBar()
       return
@@ -647,7 +684,7 @@
     if (bulkBtn) { bulkBtn.disabled = true }
 
     for (let i = 0; i < uids.length; i++) {
-      setStatus(`${action === 'unfollow' ? 'Unfollow' : 'Follow'} ${i + 1}/${uids.length}...`, 'loading')
+      setStatus(`${action === 'unfollow' ? 'Unfollow' : 'Follow'} ${i + 1}/${uids.length} · processing request batch...`, 'loading')
       await doAction(uids[i], action)
       if (i < uids.length - 1) await sleep(rand(1200, 2200))
     }
@@ -667,7 +704,7 @@
     if ($('igt-filter')) $('igt-filter').value = ''
 
     const btn = $('igt-btn')
-    btn.disabled = true; btn.textContent = 'กำลังโหลด...'
+    btn.disabled = true; btn.textContent = 'Initializing...'
     setProgress(true)
     // Start indeterminate
     const fillEl = document.querySelector(`#${PANEL_ID} .igt-progress-fill`)
@@ -677,7 +714,7 @@
     if (main) { main.style.display = 'flex'; $('igt-list-wrap').innerHTML = '' }
 
     try {
-      setStatus('กำลังตรวจสอบสิทธิ์...', 'loading')
+      setStatus('Establishing secure handshake...', 'loading')
       
       // Get logged-in user info first
       const loggedIn = await getLoggedInUser()
@@ -695,15 +732,15 @@
       const userId = loggedIn.pk
 
       // Get counts for progress display
-      setStatus('กำลังดึงข้อมูล...', 'loading')
+      setStatus('Querying namespace metadata...', 'loading')
       const { followerCount, followingCount } = await getUserInfo(userId)
 
       // Warn if account is very large
       const isBigAccount = followerCount > FOLLOWERS_CAP
       if (isBigAccount) {
         setStatus(
-          `${followerCount.toLocaleString()} followers — โหลดแค่ ${FOLLOWERS_CAP.toLocaleString()} คนแรก`,
-          'info'
+          `${followerCount.toLocaleString()} followers detected — capped at ${FOLLOWERS_CAP.toLocaleString()} records`,
+          'warning'
         )
         await sleep(1800)
       }
@@ -724,9 +761,14 @@
         const elapsed = (Date.now() - startTime) / 1000
         const rate    = loaded / Math.max(elapsed, 1)
         const remain  = total > 0 && rate > 0 ? Math.round((total - loaded) / rate) : 0
-        const eta     = remain > 5 ? ` · ~${remain}s` : ''
-        setStatus(`โหลด ${loaded.toLocaleString()}/${total > 0 ? total.toLocaleString() : '?'} คน (${pct}%)${eta}`, true)
-        // Switch from indeterminate to real progress
+        const eta     = remain > 5 ? ` ETA ${remain}s` : ''
+
+        const phase = fLoaded < fTotal || fTotal === 0
+          ? `Synchronizing ingress relationship subgraph · ${fLoaded.toLocaleString()}${fTotal > 0 ? `/${fTotal.toLocaleString()}` : ''} records`
+          : `Analyzing outbound edge vectors · ${gLoaded.toLocaleString()}${gTotal > 0 ? `/${gTotal.toLocaleString()}` : ''} records`
+
+        setStatus(`${phase} · ${pct}%${eta}`, 'loading')
+
         const fill = document.querySelector(`#${PANEL_ID} .igt-progress-fill`)
         if (fill) {
           fill.classList.remove('indeterminate')
@@ -736,7 +778,7 @@
       // Load SEQUENTIALLY like original source — followers first, then following
       // This ensures the diff is always accurate (no race condition)
 
-      setStatus('กำลังโหลด ผู้ที่ติดตามคุณ (followers)...', 'loading')
+      setStatus('Synchronizing ingress relationship subgraph...', 'loading')
       await loadListStream('followers', userId, (batch, loaded) => {
         const currentPks = new Set(followers.map(u => String(u.pk)))
         const newEntries = batch.filter(u => !currentPks.has(String(u.pk)))
@@ -746,7 +788,7 @@
         renderStats()
       })
 
-      setStatus('กำลังโหลด ผู้ที่คุณติดตาม (following)...', 'loading')
+      setStatus('Analyzing outbound edge vectors...', 'loading')
       await loadListStream('following', userId, (batch, loaded) => {
         const currentPks = new Set(following.map(u => String(u.pk)))
         const newEntries = batch.filter(u => !currentPks.has(String(u.pk)))
@@ -763,7 +805,7 @@
         const missing = following.filter((u) => !fwSet.has(String(u.pk)))
         
         if (missing.length > 0) {
-          setStatus(`ตรวจสอบเพื่อนเก่าที่ตกหล่น ${missing.length} คน (Smart Check)...`, 'loading')
+          setStatus(`Executing heuristic data validation · ${missing.length} unconfirmed records`, 'loading')
           const bSize = 30
           for (let i = 0; i < missing.length; i += bSize) {
             const chunk = missing.slice(i, i + bSize)
@@ -785,7 +827,7 @@
                   }
                 }
               }
-              setStatus(`ตรวจสอบเพื่อนเก่าที่ตกหล่น ${Math.min(i + chunk.length, missing.length)}/${missing.length} คน...`, 'loading')
+              setStatus(`Validating retrospective synchronization ${Math.min(i + chunk.length, missing.length)}/${missing.length} nodes...`, 'loading')
               renderStats()
               if (i + bSize < missing.length) await sleep(rand(1000, 1500))
             } catch (err) {

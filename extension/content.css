@@ -12,12 +12,36 @@
   font-size: 14px;
   box-shadow: -8px 0 40px rgba(0,0,0,0.2);
   animation: igt-slide-in 0.22s cubic-bezier(0.4,0,0.2,1);
-  transition: background 0.2s, color 0.2s;
+  transition: background 0.2s, color 0.2s, transform 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s;
+}
+
+/* ── Split Layout Mode ── */
+html.igt-split-active {
+  width: calc(100% - 380px) !important;
+  margin-right: 380px !important;
+  transition: margin-right 0.3s cubic-bezier(0.4,0,0.2,1), width 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+
+html.igt-split-active body {
+  width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+html.igt-split-active #__igt_panel__ {
+  box-shadow: none;
+  border-left: 1px solid var(--border);
 }
 
 @keyframes igt-slide-in {
   from { transform: translateX(100%); opacity: 0; }
   to   { transform: translateX(0);    opacity: 1; }
+}
+
+@media (max-width: 600px) {
+  html.igt-split-active {
+    width: 100% !important;
+    margin-right: 0 !important;
+  }
 }
 
 @media (max-width: 420px) {

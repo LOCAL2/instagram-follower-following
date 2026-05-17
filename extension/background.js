@@ -36,7 +36,7 @@ chrome.action.onClicked.addListener(async (tab) => {
             <circle cx="33" cy="15" r="2" fill="white"/>
           </svg>
           <div>
-            <div style="font-weight:700;margin-bottom:2px">ต้องเปิดบน Instagram ก่อน</div>
+            <div style="font-weight:700;margin-bottom:2px">ต้องเปิดบน Instagram เท่านั้น</div>
             <div style="font-size:12px;opacity:.7">ไปที่ instagram.com แล้วกดอีกครั้ง</div>
           </div>`
         document.body.appendChild(toast)
