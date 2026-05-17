@@ -96,17 +96,32 @@
 
   // ── Auto Update Check ────────────────────────────────────────────────────────
   async function checkForUpdates() {
-    try {
-      const res = await fetch('https://raw.githubusercontent.com/LOCAL2/instagram-follower-following/main/public/version.json', { cache: 'no-cache' })
-      const data = await res.json()
-      const remote = data.version
-      const local = chrome.runtime.getManifest().version
-      
-      if (isNewer(remote, local)) {
-        showUpdateBanner(remote)
+    const local = chrome.runtime.getManifest().version
+    const sources = [
+      `https://raw.githubusercontent.com/LOCAL2/instagram-follower-following/main/public/version.json?t=${Date.now()}`,
+      `https://instagram-follower-tracker.vercel.app/version.json?t=${Date.now()}`
+    ]
+
+    for (const url of sources) {
+      try {
+        const res = await fetch(url, { cache: 'no-cache' })
+        const text = await res.text()
+        if (text.trim().startsWith('<!doctype') || text.trim().startsWith('<html')) {
+           console.log(`[IGT] ${url} returned HTML instead of JSON`)
+           continue
+        }
+        const data = JSON.parse(text)
+        const remote = data.version
+        
+        if (isNewer(remote, local)) {
+          showUpdateBanner(remote)
+          return // Stop after first success
+        }
+        console.log(`[IGT] Up to date (${local}) via ${url}`)
+        return // Stop if we got a valid response (even if up to date)
+      } catch (e) {
+        console.log(`[IGT] Update check failed for ${url}:`, e.message)
       }
-    } catch (e) {
-      console.log('[IGT] Update check bypassed', e)
     }
   }
 
