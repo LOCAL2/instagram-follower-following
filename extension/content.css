@@ -41,6 +41,33 @@ html.igt-split-active #__igt_panel__ {
   to   { transform: translateX(0);    opacity: 1; }
 }
 
+/* ── Update Banner ── */
+.igt-update-banner {
+  background: var(--accent);
+  color: #fff;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  gap: 12px;
+}
+.igt-update-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.igt-update-btn {
+  background: #fff !important;
+  color: var(--accent) !important;
+  padding: 4px 10px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
 @media (max-width: 600px) {
   html.igt-split-active {
     width: 100% !important;

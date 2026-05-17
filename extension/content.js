@@ -94,6 +94,51 @@
            </svg>`
   }
 
+  // ── Auto Update Check ────────────────────────────────────────────────────────
+  async function checkForUpdates() {
+    try {
+      const res = await fetch('https://instagram-follower-tracker.vercel.app/version.json', { cache: 'no-cache' })
+      const data = await res.json()
+      const remote = data.version
+      const local = chrome.runtime.getManifest().version
+      
+      if (isNewer(remote, local)) {
+        showUpdateBanner(remote)
+      }
+    } catch (e) {
+      console.log('[IGT] Update check bypassed', e)
+    }
+  }
+
+  function isNewer(remote, local) {
+    const r = remote.split('.').map(Number)
+    const l = local.split('.').map(Number)
+    for (let i = 0; i < Math.max(r.length, l.length); i++) {
+        const rv = r[i] || 0
+        const lv = l[i] || 0
+        if (rv > lv) return true
+        if (rv < lv) return false
+    }
+    return false
+  }
+
+  function showUpdateBanner(ver) {
+    const wrap = document.getElementById('igt-update-wrap')
+    if (!wrap) return
+    wrap.innerHTML = `
+      <div class="igt-update-banner">
+        <div class="igt-update-text">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+          </svg>
+          มีเวอร์ชันใหม่ให้ใช้งาน (v${ver})
+        </div>
+        <a href="https://instagram-follower-tracker.vercel.app/#install" target="_blank" class="igt-update-btn">อัปเดตเลย</a>
+      </div>
+    `
+    wrap.hidden = false
+  }
+
   // ── Instagram API ─────────────────────────────────────────────────────────────
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
   const rand  = (a, b) => Math.floor(Math.random() * (b - a)) + a
@@ -310,6 +355,7 @@
     const panel = document.createElement('div')
     panel.id = PANEL_ID
     panel.innerHTML = `
+      <div id="igt-update-wrap" hidden></div>
       <div class="igt-header">
         <div class="igt-header-logo" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none">
@@ -383,6 +429,7 @@
     document.body.appendChild(panel)
     applyTheme()
     setTimeout(applySplit, 50)
+    checkForUpdates()
 
     document.getElementById('igt-close').onclick = () => closePanel()
     document.getElementById('igt-theme-btn').onclick = toggleTheme

@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url'
 const __dirname = join(fileURLToPath(import.meta.url), '../..')
 const MANIFEST_PATH = join(__dirname, 'extension', 'manifest.json')
 const UPDATES_PATH = join(__dirname, 'public', 'updates.xml')
+const VERSION_JSON_PATH = join(__dirname, 'public', 'version.json')
 
 try {
   // 1. Read manifest
@@ -32,6 +33,10 @@ try {
 
   writeFileSync(UPDATES_PATH, xml)
   console.log(`✅ updates.xml updated to v${newVersion}`)
+
+  // 5. Generate version.json
+  writeFileSync(VERSION_JSON_PATH, JSON.stringify({ version: newVersion, date: new Date().toISOString() }, null, 2))
+  console.log(`✅ version.json updated to v${newVersion}`)
 } catch (err) {
   console.error('❌ Failed to bump version:', err.message)
   process.exit(1)

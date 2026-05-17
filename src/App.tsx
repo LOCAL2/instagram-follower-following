@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import manifest from '../extension/manifest.json'
 import './App.css'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
@@ -101,8 +102,7 @@ const INSTALL_STEPS: { num: string; title: string; desc: string; type: StepType;
 const CARD_ITEMS = [
   'เป็นโอเพนซอร์สและใช้งานฟรี 100%',
   'เน้นความเป็นส่วนตัว (Zero Data Collection)',
-  'เชื่อมต่อผ่านเซสชัน Instagram โดยตรง',
-  'วิเคราะห์ความสัมพันธ์อย่างแม่นยำ (Smart Sync)'
+  'เชื่อมต่อผ่านเซสชัน Instagram โดยตรง'
 ]
 
 const MOCK_STATS = [
@@ -282,7 +282,7 @@ export default function App() {
             <div className="inst-card">
               <IGLogo size={44} />
               <h3>Instagram Follower Tracker</h3>
-              <p>Chrome Extension v1.0.0</p>
+              <p>Chrome Extension v{manifest.version}</p>
               <ul>
                 {CARD_ITEMS.map(t => (
                   <li key={t}><span className="check-wrap" aria-hidden="true"><IconCheckSm /></span>{t}</li>
