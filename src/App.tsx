@@ -98,7 +98,12 @@ const INSTALL_STEPS: { num: string; title: string; desc: string; type: StepType;
   { num: '03', title: 'ลากไฟล์ลงมาวาง',         desc: 'ลากไฟล์ extension.zip ที่ดาวน์โหลดมา วางลงในหน้า Extensions ได้ทันที',           type: 'text' },
 ]
 
-const CARD_ITEMS = ['Zero cost, forever', 'No data collection', 'Uses your active session', 'Scales to any account size']
+const CARD_ITEMS = [
+  'เป็นโอเพนซอร์สและใช้งานฟรี 100%',
+  'เน้นความเป็นส่วนตัว (Zero Data Collection)',
+  'เชื่อมต่อผ่านเซสชัน Instagram โดยตรง',
+  'วิเคราะห์ความสัมพันธ์อย่างแม่นยำ (Smart Sync)'
+]
 
 const MOCK_STATS = [
   { n: '1,284', l: 'Followers',          c: '' },
