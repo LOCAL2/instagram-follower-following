@@ -34,7 +34,7 @@
   }
 
   // ── Split Layout ──────────────────────────────────────────────────────────────
-  let isSplit = localStorage.getItem('igt_split') === 'true'
+  let isSplit = localStorage.getItem('igt_split') !== 'false' // Default to true
 
   function applySplit() {
     document.documentElement.classList.toggle('igt-split-active', isSplit)
