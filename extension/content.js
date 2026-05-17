@@ -225,9 +225,12 @@
     let maxId   = ''
     let loaded  = 0
     let retries = 0
+    let recentlyThrottled = false
+
     while (true) {
       try {
-        let path = `/api/v1/friendships/${userId}/${list}/?count=50&search_surface=follow_list_page`
+        // Reduced count from 50 to 30 for smoothness
+        let path = `/api/v1/friendships/${userId}/${list}/?count=30&search_surface=follow_list_page`
         if (maxId) path += `&max_id=${maxId}`
         const data = await igGet(path)
         const users = data.users ?? []
@@ -238,13 +241,18 @@
         if (!data.next_max_id || loaded >= cap) break
         maxId   = data.next_max_id
         retries = 0
-        await sleep(rand(800, 1500))
+        
+        // Adaptive delay based on previous throttling
+        const baseDelay = recentlyThrottled ? rand(3000, 5000) : rand(1800, 3000)
+        await sleep(baseDelay)
       } catch (err) {
         const isBlock = err.message.includes('429') || err.message.includes('IG_HTML_BLOCK')
-        if (isBlock && retries < 4) {
+        if (isBlock && retries < 5) {
           retries++
-          const wait = retries * 5000
-          setStatus(`Ingress throttling detected — executing backoff ${wait/1000}s (retry ${retries}/3)`, 'warning')
+          recentlyThrottled = true
+          // Exponential backoff with jitter
+          const wait = Math.pow(2, retries - 1) * 6000 + rand(0, 3000)
+          setStatus(`Safety protocol engaged — pausing for ${Math.round(wait/1000)}s (retry ${retries}/5)`, 'warning')
           await sleep(wait)
         } else { throw err }
       }
@@ -884,9 +892,16 @@
               }
               setStatus(`Validating retrospective synchronization ${Math.min(i + chunk.length, missing.length)}/${missing.length} nodes...`, 'loading')
               renderStats()
-              if (i + bSize < missing.length) await sleep(rand(1000, 1500))
+              // More conservative delay for heuristic check
+              if (i + bSize < missing.length) await sleep(rand(2000, 3500))
             } catch (err) {
-              console.warn('show_many skipped', err)
+              const isBlock = err.message.includes('429') || err.message.includes('IG_HTML_BLOCK')
+              if (isBlock) {
+                setStatus('Throttling detected during validation — cooling down 10s...', 'warning')
+                await sleep(10000)
+                i -= bSize // Retry this chunk once
+              }
+              console.warn('show_many skipped or throttled', err)
             }
           }
         }
