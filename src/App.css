@@ -191,9 +191,8 @@
   transform: translateX(-100%);
   animation: ig-shimmer 3s infinite;
 }
-.mockup-button-active { animation: ig-tap 0.3s ease-out; }
-.mockup-stat-n { transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-.mockup-stat-change .mockup-stat-n { transform: scale(1.15); color: #fff; }
+.mockup-stat-n { transition: color 0.4s ease; }
+.mockup-stat-change .mockup-stat-n { color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
 
 @keyframes ig-float {
   0%, 100% { transform: translateY(0); }

@@ -105,6 +105,27 @@ const CARD_ITEMS = [
   'เชื่อมต่อผ่านเซสชัน Instagram โดยตรง'
 ]
 
+// ── Helpers ──────────────────────────────────────────────────────────────────
+const CountUp = ({ value }: { value: number }) => {
+  const [displayValue, setDisplayValue] = useState(value)
+  useEffect(() => {
+    let start = displayValue
+    let end = value
+    if (start === end) return
+    let duration = 800
+    let startTime: number | null = null
+    const step = (t: number) => {
+      if (!startTime) startTime = t
+      const progress = Math.min((t - startTime) / duration, 1)
+      const easeOutQuad = (x: number) => 1 - (1 - x) * (1 - x)
+      const current = Math.floor(easeOutQuad(progress) * (end - start) + start)
+      setDisplayValue(current)
+      if (progress < 1) requestAnimationFrame(step)
+    }
+    requestAnimationFrame(step)
+  }, [value])
+  return <>{displayValue.toLocaleString()}</>
+}
 
 // ── App component ─────────────────────────────────────────────────────────────
 export default function App() {
@@ -254,7 +275,9 @@ export default function App() {
               <div className="mockup-stats">
                 {mockStats.map((s, idx) => (
                   <div className={`mockup-stat${s.c ? ` mockup-stat--${s.c}` : ''}${statEffect === idx ? ' mockup-stat-change' : ''}`} key={s.l}>
-                    <span className="mockup-stat-n">{s.v.toLocaleString()}</span>
+                    <span className="mockup-stat-n">
+                      <CountUp value={s.v} />
+                    </span>
                     <span className="mockup-stat-l">{s.l}</span>
                   </div>
                 ))}
