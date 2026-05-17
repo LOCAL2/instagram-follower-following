@@ -105,79 +105,113 @@ const CARD_ITEMS = [
   'เชื่อมต่อผ่านเซสชัน Instagram โดยตรง'
 ]
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-const CountUp = ({ value }: { value: number }) => {
-  const [displayValue, setDisplayValue] = useState(value)
-  useEffect(() => {
-    let start = displayValue
-    let end = value
-    if (start === end) return
-    let duration = 800
-    let startTime: number | null = null
-    const step = (t: number) => {
-      if (!startTime) startTime = t
-      const progress = Math.min((t - startTime) / duration, 1)
-      const easeOutQuad = (x: number) => 1 - (1 - x) * (1 - x)
-      const current = Math.floor(easeOutQuad(progress) * (end - start) + start)
-      setDisplayValue(current)
-      if (progress < 1) requestAnimationFrame(step)
-    }
-    requestAnimationFrame(step)
-  }, [value])
-  return <>{displayValue.toLocaleString()}</>
-}
+
+// ── Mockup Component ─────────────────────────────────────────────────────────
+import { memo } from 'react'
+const MockupPreview = memo(() => {
+  const stats = [
+    { v: '1,284', l: 'Followers', c: '' },
+    { v: '892',   l: 'Following',  c: '' },
+    { v: '47',    l: 'ไม่ follow กลับ', c: 'red' },
+    { v: '239',   l: 'ฉันไม่ follow กลับ', c: 'purple' },
+  ]
+
+  return (
+    <div className="hero-mockup" aria-hidden="true">
+      <div className="mockup-browser">
+        <div className="mockup-bar">
+          <div className="mockup-dots"><span /><span /><span /></div>
+          <div className="mockup-url">instagram.com</div>
+        </div>
+        <div className="mockup-panel">
+          <div className="mockup-panel-head">
+            <div className="mockup-panel-brand">
+              <IGLogo size={20} />
+              <span>Follower Tracker</span>
+            </div>
+            <div className="mockup-panel-actions">
+              <div className="mockup-icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M15 3v18"/></svg></div>
+              <div className="mockup-icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></div>
+              <div className="mockup-icon-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" d="M6 6l12 12M6 18L18 6"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className="mockup-search">
+            <div className="mockup-input">
+              <span>@&nbsp;</span>
+              <div className="mockup-placeholder">your_username...</div>
+            </div>
+            <div className="mockup-btn">ตรวจสอบ</div>
+          </div>
+
+          <div className="mockup-stats">
+            {stats.map(s => (
+              <div className={`mockup-stat${s.c ? ` mockup-stat--${s.c}` : ''}`} key={s.l}>
+                <span className="mockup-stat-n">{s.v}</span>
+                <span className="mockup-stat-l">{s.l}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mockup-tabs">
+            <span className="mockup-tab mockup-tab--on">ไม่ follow กลับ</span>
+            <span className="mockup-tab">ฉันไม่ follow กลับ</span>
+          </div>
+
+          <div className="mockup-user-list">
+            {[
+              { id: 'design_inspire', name: 'Design Daily', g: 'gradient-1' },
+              { id: 'tech_minimal',   name: 'Tech Review',  g: 'gradient-2' },
+              { id: 'travel_vibe',    name: 'Nomad Soul',   g: 'gradient-3' }
+            ].map(u => (
+              <div className="mockup-user" key={u.id}>
+                <div className={`mockup-avatar ${u.g}`} />
+                <div className="mockup-info">
+                  <div className="mockup-uname">@{u.id}</div>
+                  <div className="mockup-fname">{u.name}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+})
 
 // ── App component ─────────────────────────────────────────────────────────────
 export default function App() {
   const [scrolled, setScrolled] = useState(false)
   const [copied, setCopied] = useState(false)
   const [showToast, setShowToast] = useState(false)
-
-  // Mockup dynamic states
-  const [mockStats, setMockStats] = useState([
-    { v: 1284, l: 'Followers', c: '' },
-    { v: 892,  l: 'Following',  c: '' },
-    { v: 47,   l: 'ไม่ follow กลับ', c: 'red' },
-    { v: 239,  l: 'ฉันไม่ follow กลับ', c: 'purple' },
-  ])
-  const [mockTab, setMockTab] = useState(0)
-  const [mockUser, setMockUser] = useState('')
-  const [statEffect, setStatEffect] = useState<number | null>(null)
+  const [lastUpdate, setLastUpdate] = useState<string>('')
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 40)
     window.addEventListener('scroll', fn, { passive: true })
-
-    // 1. Cycle Tabs
-    const tabInt = setInterval(() => setMockTab(t => t === 0 ? 1 : 0), 4500)
-
-    // 2. Fluctuate Stats
-    const statInt = setInterval(() => {
-      const idx = Math.floor(Math.random() * mockStats.length)
-      setMockStats(prev => {
-        const next = [...prev]
-        const drift = Math.random() > 0.5 ? 1 : -1
-        next[idx] = { ...next[idx], v: next[idx].v + drift }
-        return next
+    
+    // Fetch version mapping
+    fetch('/version.json')
+      .then(r => r.json())
+      .then(data => {
+        if (data.date) {
+          const d = new Date(data.date)
+          setLastUpdate(d.toLocaleDateString('th-TH', { 
+            day: 'numeric', 
+            month: 'short', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }))
+        }
       })
-      setStatEffect(idx)
-      setTimeout(() => setStatEffect(null), 800)
-    }, 3000)
+      .catch(() => {})
 
-    // 3. Typing Effect
-    const full = 'woradet.1'
-    let char = 0
-    const typeInt = setInterval(() => {
-      setMockUser(full.substring(0, char))
-      char = (char + 1) % (full.length + 5)
-    }, 250)
-
-    return () => {
-      window.removeEventListener('scroll', fn)
-      clearInterval(tabInt)
-      clearInterval(statInt)
-      clearInterval(typeInt)
-    }
+    return () => window.removeEventListener('scroll', fn)
   }, [])
 
   const handleCopy = (text: string) => {
@@ -221,7 +255,10 @@ export default function App() {
         <div className="hero-glow hero-glow--1" aria-hidden="true" />
         <div className="hero-glow hero-glow--2" aria-hidden="true" />
         <div className="hero-inner">
-          <span className="hero-badge"><ChromeLogo size={13} />Chrome Extension — ฟรี</span>
+          <div className="hero-ver-wrap">
+            <span className="hero-badge"><ChromeLogo size={13} />Chrome Extension — ฟรี</span>
+            {lastUpdate && <span className="hero-update-tag">อัปเดตเมื่อ: {lastUpdate}</span>}
+          </div>
           <h1 className="hero-title">
             รู้ทันว่าใคร<br />
             <span className="hero-gradient">ไม่ follow กลับ</span>
@@ -240,80 +277,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* Mock browser preview */}
-        <div className="hero-mockup" aria-hidden="true">
-          <div className="mockup-browser">
-            <div className="mockup-bar">
-              <div className="mockup-dots"><span /><span /><span /></div>
-              <div className="mockup-url">instagram.com</div>
-            </div>
-            <div className="mockup-panel">
-              <div className="mockup-panel-head">
-                <div className="mockup-panel-brand">
-                  <IGLogo size={20} />
-                  <span>Follower Tracker</span>
-                </div>
-                <div className="mockup-panel-actions">
-                  <div className="mockup-icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M15 3v18"/></svg></div>
-                  <div className="mockup-icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></div>
-                  <div className="mockup-icon-btn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                      <path stroke-linecap="round" d="M6 6l12 12M6 18L18 6"/>
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mockup-search">
-                <div className="mockup-input">
-                  <span>@&nbsp;</span>
-                  <div className="mockup-placeholder">{mockUser ? mockUser : 'your_username...'}</div>
-                </div>
-                <div className="mockup-btn">ตรวจสอบ</div>
-              </div>
-
-              <div className="mockup-stats">
-                {mockStats.map((s, idx) => (
-                  <div className={`mockup-stat${s.c ? ` mockup-stat--${s.c}` : ''}${statEffect === idx ? ' mockup-stat-change' : ''}`} key={s.l}>
-                    <span className="mockup-stat-n">
-                      <CountUp value={s.v} />
-                    </span>
-                    <span className="mockup-stat-l">{s.l}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mockup-tabs">
-                <span className={`mockup-tab ${mockTab === 0 ? 'mockup-tab--on' : ''}`}>ไม่ follow กลับ</span>
-                <span className={`mockup-tab ${mockTab === 1 ? 'mockup-tab--on' : ''}`}>ฉันไม่ follow กลับ</span>
-              </div>
-
-              <div className="mockup-user-list">
-                <div className="mockup-user">
-                  <div className="mockup-avatar gradient-1"></div>
-                  <div className="mockup-info">
-                    <div className="mockup-uname">@design_inspire</div>
-                    <div className="mockup-fname">Design Daily</div>
-                  </div>
-                </div>
-                <div className="mockup-user">
-                  <div className="mockup-avatar gradient-2"></div>
-                  <div className="mockup-info">
-                    <div className="mockup-uname">@tech_minimal</div>
-                    <div className="mockup-fname">Tech Review</div>
-                  </div>
-                </div>
-                <div className="mockup-user">
-                  <div className="mockup-avatar gradient-3"></div>
-                  <div className="mockup-info">
-                    <div className="mockup-uname">@travel_vibe</div>
-                    <div className="mockup-fname">Nomad Soul</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <MockupPreview />
       </header>
 
       {/* Features */}
@@ -395,6 +359,7 @@ export default function App() {
               <IGLogo size={44} />
               <h3>Instagram Follower Tracker</h3>
               <p>Chrome Extension v{manifest.version}</p>
+              {lastUpdate && <p className="inst-card-update">อัปเดตล่าสุด: {lastUpdate}</p>}
               <ul>
                 {CARD_ITEMS.map(t => (
                   <li key={t}><span className="check-wrap" aria-hidden="true"><IconCheckSm /></span>{t}</li>

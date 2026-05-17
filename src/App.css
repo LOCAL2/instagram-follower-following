@@ -56,6 +56,16 @@
   position: relative; z-index: 1; flex: 0 0 auto; width: 100%; max-width: 520px;
   display: flex; flex-direction: column; gap: 22px;
 }
+.hero-ver-wrap {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.hero-update-tag {
+  font-size: 11px;
+  color: var(--text-3);
+  font-weight: 500;
+  opacity: 0.8;
+  padding-left: 4px;
+}
 .hero-badge {
   display: inline-flex; align-items: center; gap: 7px; width: fit-content;
   background: rgba(99,102,241,.12); border: 1px solid rgba(99,102,241,.3);
@@ -182,29 +192,9 @@
 .gradient-3 { background: linear-gradient(135deg, #405de6, #5851db, #833ab4); }
 .mockup-fname { font-size: 9px; color: var(--text-3); }
 
-/* Animation Classes */
-.mockup-panel-brand { animation: ig-float 6s ease-in-out infinite; }
-.mockup-stat { position: relative; overflow: hidden; }
-.mockup-stat::after {
-  content: ""; position: absolute; inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
-  transform: translateX(-100%);
-  animation: ig-shimmer 3s infinite;
-}
-.mockup-stat-n { transition: color 0.4s ease; }
-.mockup-stat-change .mockup-stat-n { color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
-
-@keyframes ig-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
-@keyframes ig-shimmer {
-  100% { transform: translateX(100%); }
-}
-@keyframes ig-tap {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(0.95); opacity: 0.8; }
-}
+.mockup-stat-n { color: var(--text); }
+.mockup-stat--red    .mockup-stat-n { color: var(--red); }
+.mockup-stat--purple .mockup-stat-n { color: var(--accent-l); }
 
 /* ── Section shared ── */
 .section { padding: 88px 24px; }
@@ -341,7 +331,8 @@
   display: flex; flex-direction: column; align-items: center; gap: 6px;
 }
 .inst-card h3 { font-size: 15px; font-weight: 700; margin-top: 6px; }
-.inst-card > p { font-size: 12px; color: var(--text-3); margin-bottom: 10px; }
+.inst-card > p { font-size: 12px; color: var(--text-3); margin-bottom: 2px; }
+.inst-card-update { font-size: 11px !important; color: var(--accent-l) !important; opacity: 0.8; margin-bottom: 12px; }
 .inst-card ul { list-style: none; padding: 0; margin: 0 0 20px; width: 100%; text-align: left; display: flex; flex-direction: column; gap: 9px; }
 .inst-card li { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--text-2); }
 .check-wrap {
