@@ -91,6 +91,7 @@ const HOW_STEPS = [
   { n: '3', title: 'คลิกไอคอน & ตรวจสอบ',   desc: 'กดไอคอน extension ที่ toolbar กรอก username แล้วดูผลลัพธ์ได้ทันที' },
 ]
 
+type StepType = 'download' | 'copy' | 'text' | 'done'
 const INSTALL_STEPS: { num: string; title: string; desc: string; type: StepType; copyText?: string }[] = [
   { num: '01', title: 'ดาวน์โหลด Extension',  desc: 'กดปุ่มด้านล่างเพื่อดาวน์โหลดไฟล์ extension.zip',                          type: 'download' },
   { num: '02', title: 'ไปที่หน้า Extensions', desc: 'คัดลอก chrome://extensions ไปวางในช่อง address bar แล้วเปิด Developer Mode ขวาบน', type: 'copy', copyText: 'chrome://extensions' },
