@@ -97,7 +97,7 @@
   // ── Auto Update Check ────────────────────────────────────────────────────────
   async function checkForUpdates() {
     try {
-      const res = await fetch('https://instagram-follower-tracker.vercel.app/version.json', { cache: 'no-cache' })
+      const res = await fetch('https://raw.githubusercontent.com/LOCAL2/instagram-follower-following/main/public/version.json', { cache: 'no-cache' })
       const data = await res.json()
       const remote = data.version
       const local = chrome.runtime.getManifest().version
