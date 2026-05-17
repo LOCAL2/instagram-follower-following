@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/bump-version.mjs && node scripts/zip-extension.mjs && tsc -b && vite build",
+    "build": "node scripts/zip-extension.mjs && tsc -b && vite build",
     "build:ext": "node scripts/zip-extension.mjs",
     "lint": "eslint .",
     "preview": "vite preview"

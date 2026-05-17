@@ -189,6 +189,7 @@ export default function App() {
   const [copied, setCopied] = useState(false)
   const [showToast, setShowToast] = useState(false)
   const [lastUpdate, setLastUpdate] = useState<string>('')
+  const [siteVersion, setSiteVersion] = useState<string>(manifest.version)
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 40)
@@ -198,6 +199,7 @@ export default function App() {
     fetch('/version.json')
       .then(r => r.json())
       .then(data => {
+        if (data.version) setSiteVersion(data.version)
         if (data.date) {
           const d = new Date(data.date)
           setLastUpdate(d.toLocaleDateString('th-TH', { 
@@ -358,7 +360,7 @@ export default function App() {
             <div className="inst-card">
               <IGLogo size={44} />
               <h3>Instagram Follower Tracker</h3>
-              <p>Chrome Extension v{manifest.version}</p>
+              <p>Chrome Extension v{siteVersion}</p>
               {lastUpdate && <p className="inst-card-update">อัปเดตล่าสุด: {lastUpdate}</p>}
               <ul>
                 {CARD_ITEMS.map(t => (
