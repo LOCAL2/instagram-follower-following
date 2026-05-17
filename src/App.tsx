@@ -100,7 +100,7 @@ const INSTALL_STEPS: { num: string; title: string; desc: string; type: StepType;
 ]
 
 const CARD_ITEMS = [
-  'เป็นโอเพนซอร์สและใช้งานฟรี 100%',
+  'ใช้งานฟรี 100%',
   'เน้นความเป็นส่วนตัว (Zero Data Collection)',
   'เชื่อมต่อผ่านเซสชัน Instagram โดยตรง'
 ]
