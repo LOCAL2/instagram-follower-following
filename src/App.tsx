@@ -116,6 +116,7 @@ const MOCK_STATS = [
 export default function App() {
   const [scrolled, setScrolled] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [showToast, setShowToast] = useState(false)
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 40)
@@ -126,11 +127,27 @@ export default function App() {
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text)
     setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    setShowToast(true)
+    setTimeout(() => {
+      setCopied(false)
+      setShowToast(false)
+    }, 3000)
   }
 
   return (
     <div className="page">
+      {/* Professional Toast Notification */}
+      <div className={`igt-toast-wrap ${showToast ? 'igt-toast--show' : ''}`}>
+        <div className="igt-toast">
+          <div className="igt-toast-icon">
+            <IconCheckSm />
+          </div>
+          <div className="igt-toast-content">
+            <div className="igt-toast-title">คัดลอกสำเร็จ!</div>
+            <div className="igt-toast-desc">นำไปวางในช่อง URL ด้านบนได้เลย</div>
+          </div>
+        </div>
+      </div>
 
       {/* Navbar */}
       <nav className={`navbar${scrolled ? ' navbar--scrolled' : ''}`} aria-label="Main navigation">
@@ -275,7 +292,6 @@ export default function App() {
                             <IconCopy done={copied} />{copied ? 'คัดลอกแล้ว' : 'คัดลอก'}
                           </button>
                         </div>
-                        {copied && <div className="copy-hint">คัดลอกแล้ว! นำไปวางในช่อง URL ด้านบนได้เลย</div>}
                       </div>
                     )}
                   </div>
