@@ -34,10 +34,10 @@
   }
 
   // ── Split Layout ──────────────────────────────────────────────────────────────
-  let isSplit = localStorage.getItem('igt_split') !== 'false' 
+  let isSplit = localStorage.getItem('igt_split') === 'true' 
   if (localStorage.getItem('igt_split') === null) {
-    isSplit = true;
-    localStorage.setItem('igt_split', 'true');
+    isSplit = false;
+    localStorage.setItem('igt_split', 'false');
   }
 
   function applySplit() {
