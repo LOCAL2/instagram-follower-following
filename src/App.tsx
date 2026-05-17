@@ -105,12 +105,6 @@ const CARD_ITEMS = [
   'เชื่อมต่อผ่านเซสชัน Instagram โดยตรง'
 ]
 
-const MOCK_STATS = [
-  { n: '1,284', l: 'Followers',          c: '' },
-  { n: '892',   l: 'Following',           c: '' },
-  { n: '47',    l: 'ไม่ follow กลับ',    c: 'red' },
-  { n: '239',   l: 'ฉันไม่ follow กลับ', c: 'purple' },
-]
 
 // ── App component ─────────────────────────────────────────────────────────────
 export default function App() {
@@ -118,10 +112,51 @@ export default function App() {
   const [copied, setCopied] = useState(false)
   const [showToast, setShowToast] = useState(false)
 
+  // Mockup dynamic states
+  const [mockStats, setMockStats] = useState([
+    { v: 1284, l: 'Followers', c: '' },
+    { v: 892,  l: 'Following',  c: '' },
+    { v: 47,   l: 'ไม่ follow กลับ', c: 'red' },
+    { v: 239,  l: 'ฉันไม่ follow กลับ', c: 'purple' },
+  ])
+  const [mockTab, setMockTab] = useState(0)
+  const [mockUser, setMockUser] = useState('')
+  const [statEffect, setStatEffect] = useState<number | null>(null)
+
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 40)
     window.addEventListener('scroll', fn, { passive: true })
-    return () => window.removeEventListener('scroll', fn)
+
+    // 1. Cycle Tabs
+    const tabInt = setInterval(() => setMockTab(t => t === 0 ? 1 : 0), 4500)
+
+    // 2. Fluctuate Stats
+    const statInt = setInterval(() => {
+      const idx = Math.floor(Math.random() * mockStats.length)
+      setMockStats(prev => {
+        const next = [...prev]
+        const drift = Math.random() > 0.5 ? 1 : -1
+        next[idx] = { ...next[idx], v: next[idx].v + drift }
+        return next
+      })
+      setStatEffect(idx)
+      setTimeout(() => setStatEffect(null), 800)
+    }, 3000)
+
+    // 3. Typing Effect
+    const full = 'woradet.1'
+    let char = 0
+    const typeInt = setInterval(() => {
+      setMockUser(full.substring(0, char))
+      char = (char + 1) % (full.length + 5)
+    }, 250)
+
+    return () => {
+      window.removeEventListener('scroll', fn)
+      clearInterval(tabInt)
+      clearInterval(statInt)
+      clearInterval(typeInt)
+    }
   }, [])
 
   const handleCopy = (text: string) => {
@@ -182,13 +217,6 @@ export default function App() {
               <span className="btn-ghost-arrow"><IconArrowDown /></span>
             </a>
           </div>
-          <div className="hero-trust">
-            <span className="trust-dot" aria-hidden="true" />ไม่เก็บข้อมูล
-            <span className="trust-sep" aria-hidden="true">·</span>
-            <span className="trust-dot" aria-hidden="true" />ไม่ต้อง login ใหม่
-            <span className="trust-sep" aria-hidden="true">·</span>
-            <span className="trust-dot" aria-hidden="true" />Open source
-          </div>
         </div>
 
         {/* Mock browser preview */}
@@ -218,23 +246,23 @@ export default function App() {
               <div className="mockup-search">
                 <div className="mockup-input">
                   <span>@&nbsp;</span>
-                  <div className="mockup-placeholder">your_username...</div>
+                  <div className="mockup-placeholder">{mockUser ? mockUser : 'your_username...'}</div>
                 </div>
                 <div className="mockup-btn">ตรวจสอบ</div>
               </div>
 
               <div className="mockup-stats">
-                {MOCK_STATS.map(s => (
-                  <div className={`mockup-stat${s.c ? ` mockup-stat--${s.c}` : ''}`} key={s.l}>
-                    <span className="mockup-stat-n">{s.n}</span>
+                {mockStats.map((s, idx) => (
+                  <div className={`mockup-stat${s.c ? ` mockup-stat--${s.c}` : ''}${statEffect === idx ? ' mockup-stat-change' : ''}`} key={s.l}>
+                    <span className="mockup-stat-n">{s.v.toLocaleString()}</span>
                     <span className="mockup-stat-l">{s.l}</span>
                   </div>
                 ))}
               </div>
 
               <div className="mockup-tabs">
-                <span className="mockup-tab mockup-tab--on">ไม่ follow กลับ</span>
-                <span className="mockup-tab">ฉันไม่ follow กลับ</span>
+                <span className={`mockup-tab ${mockTab === 0 ? 'mockup-tab--on' : ''}`}>ไม่ follow กลับ</span>
+                <span className={`mockup-tab ${mockTab === 1 ? 'mockup-tab--on' : ''}`}>ฉันไม่ follow กลับ</span>
               </div>
 
               <div className="mockup-user-list">

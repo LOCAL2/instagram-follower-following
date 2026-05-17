@@ -180,8 +180,32 @@
 .gradient-1 { background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
 .gradient-2 { background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045); }
 .gradient-3 { background: linear-gradient(135deg, #405de6, #5851db, #833ab4); }
-.mockup-uname { font-size: 11px; font-weight: 600; color: var(--text); line-height: 1.2; }
 .mockup-fname { font-size: 9px; color: var(--text-3); }
+
+/* Animation Classes */
+.mockup-panel-brand { animation: ig-float 6s ease-in-out infinite; }
+.mockup-stat { position: relative; overflow: hidden; }
+.mockup-stat::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
+  transform: translateX(-100%);
+  animation: ig-shimmer 3s infinite;
+}
+.mockup-button-active { animation: ig-tap 0.3s ease-out; }
+.mockup-stat-n { transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.mockup-stat-change .mockup-stat-n { transform: scale(1.15); color: #fff; }
+
+@keyframes ig-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+@keyframes ig-shimmer {
+  100% { transform: translateX(100%); }
+}
+@keyframes ig-tap {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(0.95); opacity: 0.8; }
+}
 
 /* ── Section shared ── */
 .section { padding: 88px 24px; }
