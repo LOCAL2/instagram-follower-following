@@ -426,7 +426,7 @@
         </div>
       </div>
     `
-    document.body.appendChild(panel)
+    document.documentElement.appendChild(panel)
     applyTheme()
     setTimeout(applySplit, 50)
     checkForUpdates()
