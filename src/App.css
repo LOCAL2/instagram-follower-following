@@ -247,6 +247,7 @@
 .btn-dl:hover { opacity: .88; transform: translateY(-1px); color: #fff; }
 .btn-dl:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
+.code-row-wrap { display: flex; flex-direction: column; gap: 6px; }
 .code-row {
   display: flex; align-items: center; gap: 8px; margin-top: 10px;
   background: rgba(8,11,20,.8); border: 1px solid var(--border);
@@ -263,6 +264,15 @@
 .copy-btn:hover { background: rgba(99,102,241,.22); }
 .copy-btn--done { color: var(--green); background: rgba(16,185,129,.12); border-color: rgba(16,185,129,.25); }
 .copy-btn:focus-visible { outline: 2px solid var(--accent-l); outline-offset: 2px; }
+
+.copy-hint {
+  font-size: 11px; color: var(--accent-l); font-weight: 500;
+  padding-left: 12px; animation: igt-fade-in 0.2s ease-out;
+}
+@keyframes igt-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
 /* Install card */
 .inst-card {

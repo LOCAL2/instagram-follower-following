@@ -264,15 +264,18 @@ export default function App() {
                       </a>
                     )}
                     {step.type === 'copy' && step.copyText && (
-                      <div className="code-row">
-                        <code>{step.copyText}</code>
-                        <button
-                          className={`copy-btn${copied ? ' copy-btn--done' : ''}`}
-                          onClick={() => handleCopy(step.copyText!)}
-                          aria-label={copied ? 'คัดลอกแล้ว' : 'คัดลอก'}
-                        >
-                          <IconCopy done={copied} />{copied ? 'คัดลอกแล้ว' : 'คัดลอก'}
-                        </button>
+                      <div className="code-row-wrap">
+                        <div className="code-row">
+                          <code>{step.copyText}</code>
+                          <button
+                            className={`copy-btn${copied ? ' copy-btn--done' : ''}`}
+                            onClick={() => handleCopy(step.copyText!)}
+                            aria-label={copied ? 'คัดลอกแล้ว' : 'คัดลอก'}
+                          >
+                            <IconCopy done={copied} />{copied ? 'คัดลอกแล้ว' : 'คัดลอก'}
+                          </button>
+                        </div>
+                        {copied && <div className="copy-hint">คัดลอกแล้ว! นำไปวางในช่อง URL ด้านบนได้เลย</div>}
                       </div>
                     )}
                   </div>
