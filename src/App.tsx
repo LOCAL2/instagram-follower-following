@@ -199,7 +199,25 @@ export default function App() {
               <div className="mockup-url">instagram.com</div>
             </div>
             <div className="mockup-panel">
-              <div className="mockup-panel-head"><IGLogo size={20} /><span>Follower Tracker</span></div>
+              <div className="mockup-panel-head">
+                <div className="mockup-panel-brand">
+                  <IGLogo size={20} />
+                  <span>Follower Tracker</span>
+                </div>
+                <div className="mockup-panel-actions">
+                  <div className="mockup-icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M15 3v18"/></svg></div>
+                  <div className="mockup-icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></div>
+                </div>
+              </div>
+
+              <div className="mockup-search">
+                <div className="mockup-input">
+                  <span>@</span>
+                  <div className="mockup-placeholder">your_username...</div>
+                </div>
+                <div className="mockup-btn">ตรวจสอบ</div>
+              </div>
+
               <div className="mockup-stats">
                 {MOCK_STATS.map(s => (
                   <div className={`mockup-stat${s.c ? ` mockup-stat--${s.c}` : ''}`} key={s.l}>
@@ -208,16 +226,35 @@ export default function App() {
                   </div>
                 ))}
               </div>
+
               <div className="mockup-tabs">
                 <span className="mockup-tab mockup-tab--on">ไม่ follow กลับ</span>
                 <span className="mockup-tab">ฉันไม่ follow กลับ</span>
               </div>
-              {['user_alpha', 'user_beta', 'user_gamma'].map(u => (
-                <div className="mockup-user" key={u}>
-                  <div className="mockup-avatar" />
-                  <div><div className="mockup-uname">@{u}</div><div className="mockup-fname">Display Name</div></div>
+
+              <div className="mockup-user-list">
+                <div className="mockup-user">
+                  <div className="mockup-avatar gradient-1"></div>
+                  <div className="mockup-info">
+                    <div className="mockup-uname">@design_inspire</div>
+                    <div className="mockup-fname">Design Daily</div>
+                  </div>
                 </div>
-              ))}
+                <div className="mockup-user">
+                  <div className="mockup-avatar gradient-2"></div>
+                  <div className="mockup-info">
+                    <div className="mockup-uname">@tech_minimal</div>
+                    <div className="mockup-fname">Tech Review</div>
+                  </div>
+                </div>
+                <div className="mockup-user">
+                  <div className="mockup-avatar gradient-3"></div>
+                  <div className="mockup-info">
+                    <div className="mockup-uname">@travel_vibe</div>
+                    <div className="mockup-fname">Nomad Soul</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
