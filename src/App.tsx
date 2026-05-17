@@ -98,7 +98,7 @@ const INSTALL_STEPS: { num: string; title: string; desc: string; type: StepType;
   { num: '03', title: 'ลากไฟล์ลงมาวาง',         desc: 'ลากไฟล์ extension.zip ที่ดาวน์โหลดมา วางลงในหน้า Extensions ได้ทันที',           type: 'text' },
 ]
 
-const CARD_ITEMS = ['ฟรี 100%', 'ไม่เก็บข้อมูล', 'ไม่ต้อง login ใหม่', 'รองรับ account ขนาดใหญ่']
+const CARD_ITEMS = ['Zero cost, forever', 'No data collection', 'Uses your active session', 'Scales to any account size']
 
 const MOCK_STATS = [
   { n: '1,284', l: 'Followers',          c: '' },
