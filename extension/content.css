@@ -16,20 +16,24 @@
 }
 
 /* ── Split Layout Mode ── */
-html.igt-split-active {
+html.igt-split-active,
+html.igt-split-active body {
   width: calc(100% - 380px) !important;
   margin-right: 380px !important;
-  transition: margin-right 0.3s cubic-bezier(0.4,0,0.2,1), width 0.3s cubic-bezier(0.4,0,0.2,1);
+  transition: margin-right 0.3s cubic-bezier(0.4,0,0.2,1), width 0.3s cubic-bezier(0.4,0,0.2,1) !important;
 }
 
-html.igt-split-active body {
-  width: 100% !important;
-  overflow-x: hidden !important;
+/* Ensure fixed elements that might be using left: 0 or width: 100% also shift */
+html.igt-split-active body > div[style*="fixed"],
+html.igt-split-active body > header {
+  width: calc(100% - 380px) !important;
 }
 
 html.igt-split-active #__igt_panel__ {
   box-shadow: none;
   border-left: 1px solid var(--border);
+  margin-right: 0 !important;
+  width: 380px !important;
 }
 
 @keyframes igt-slide-in {

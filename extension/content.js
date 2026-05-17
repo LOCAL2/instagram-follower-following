@@ -34,15 +34,23 @@
   }
 
   // ── Split Layout ──────────────────────────────────────────────────────────────
-  let isSplit = localStorage.getItem('igt_split') !== 'false' // Default to true
+  let isSplit = localStorage.getItem('igt_split') !== 'false' 
+  if (localStorage.getItem('igt_split') === null) {
+    isSplit = true;
+    localStorage.setItem('igt_split', 'true');
+  }
 
   function applySplit() {
-    document.documentElement.classList.toggle('igt-split-active', isSplit)
+    const active = isSplit
+    document.documentElement.classList.toggle('igt-split-active', active)
+    document.body.classList.toggle('igt-split-active', active)
     const btn = $('igt-split-btn')
     if (btn) {
-      btn.style.color = isSplit ? 'var(--accent)' : '#fff'
-      btn.style.background = isSplit ? 'var(--bg)' : 'rgba(255,255,255,0.18)'
+      btn.style.color = active ? 'var(--accent)' : '#fff'
+      btn.style.background = active ? 'var(--bg)' : 'rgba(255,255,255,0.18)'
     }
+    // Force a minor layout recalculation for Instagram's React components
+    window.dispatchEvent(new Event('resize'))
   }
 
   function toggleSplit() {
@@ -374,7 +382,7 @@
     `
     document.body.appendChild(panel)
     applyTheme()
-    applySplit()
+    setTimeout(applySplit, 50)
 
     document.getElementById('igt-close').onclick = () => closePanel()
     document.getElementById('igt-theme-btn').onclick = toggleTheme
