@@ -412,6 +412,26 @@ html.igt-split-active #__igt_panel__ {
   opacity: 0.38;
 }
 
+/* Mutual tab — rank badge */
+#__igt_panel__ .igt-rank {
+  flex-shrink: 0;
+  min-width: 28px;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: ui-monospace, monospace;
+  color: var(--accent);
+  opacity: 0.7;
+}
+#__igt_panel__ .igt-user--mutual:nth-child(-n+3) .igt-rank {
+  opacity: 1;
+  color: var(--accent);
+  font-size: 11px;
+}
+#__igt_panel__ .igt-user--mutual:nth-child(1) .igt-rank { color: #f59e0b; }
+#__igt_panel__ .igt-user--mutual:nth-child(2) .igt-rank { color: #94a3b8; }
+#__igt_panel__ .igt-user--mutual:nth-child(3) .igt-rank { color: #b45309; }
+
 @keyframes igt-fadein {
   from { opacity: 0; transform: translateY(5px); }
   to   { opacity: 1; transform: translateY(0); }

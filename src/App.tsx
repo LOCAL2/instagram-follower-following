@@ -80,42 +80,40 @@ const ChromeLogo = ({ size = 18 }: { size?: number }) => (
 
 // ── Static data ───────────────────────────────────────────────────────────────
 const FEATURES = [
-  { icon: <IconUsers />,      title: 'ไม่ follow กลับ',       desc: 'ดูรายชื่อทุกคนที่คุณ follow แต่เขาไม่ได้ follow คุณกลับ พร้อมลิงก์โปรไฟล์', color: 'blue' },
-  { icon: <IconArrowPath />,  title: 'ฉันไม่ได้ follow กลับ', desc: 'ดูรายชื่อคนที่ follow คุณ แต่คุณยังไม่ได้ follow กลับ ครบทุกคน',            color: 'purple' },
-  { icon: <IconChartBar />,   title: 'สถิติครบถ้วน',           desc: 'แสดงจำนวน followers, following และสรุปผลทันทีในหน้าเดียว',                   color: 'cyan' },
-  { icon: <IconShieldCheck />,title: 'ปลอดภัย 100%',           desc: 'ข้อมูลทั้งหมดประมวลผลในเบราว์เซอร์ของคุณ ไม่มีการส่งออกภายนอก',             color: 'green' },
+  { icon: <IconUsers />,       title: 'ไม่ follow กลับ',       desc: 'ดูรายชื่อทุกคนที่คุณ follow แต่เขาไม่ได้ follow คุณกลับ พร้อมลิงก์โปรไฟล์', color: 'blue'   },
+  { icon: <IconArrowPath />,   title: 'ฉันไม่ได้ follow กลับ', desc: 'ดูรายชื่อคนที่ follow คุณ แต่คุณยังไม่ได้ follow กลับ ครบทุกคน',            color: 'purple' },
+  { icon: <IconChartBar />,    title: 'สถิติครบถ้วน',           desc: 'แสดงจำนวน followers, following และสรุปผลทันทีในหน้าเดียว',                   color: 'cyan'   },
+  { icon: <IconShieldCheck />, title: 'ปลอดภัย 100%',           desc: 'ข้อมูลทั้งหมดประมวลผลในเบราว์เซอร์ของคุณ ไม่มีการส่งออกภายนอก',             color: 'green'  },
 ] as const
 
 const HOW_STEPS = [
-  { n: '1', title: 'ติดตั้ง Extension',      desc: 'ดาวน์โหลดและ load extension เข้า Chrome ผ่าน Developer Mode ใช้เวลาไม่ถึง 1 นาที' },
-  { n: '2', title: 'เปิด Instagram',          desc: 'ไปที่ instagram.com และ login บัญชีของคุณตามปกติ ไม่ต้องทำอะไรพิเศษ' },
-  { n: '3', title: 'คลิกไอคอน & ตรวจสอบ',   desc: 'กดไอคอน extension ที่ toolbar กรอก username แล้วดูผลลัพธ์ได้ทันที' },
+  { n: '1', title: 'ติดตั้ง Extension',    desc: 'ดาวน์โหลดและ load extension เข้า Chrome ผ่าน Developer Mode ใช้เวลาไม่ถึง 1 นาที' },
+  { n: '2', title: 'เปิด Instagram',        desc: 'ไปที่ instagram.com และ login บัญชีของคุณตามปกติ ไม่ต้องทำอะไรพิเศษ' },
+  { n: '3', title: 'คลิกไอคอน & ตรวจสอบ', desc: 'กดไอคอน extension ที่ toolbar กรอก username แล้วดูผลลัพธ์ได้ทันที' },
 ]
 
 type StepType = 'download' | 'copy' | 'text' | 'done'
 const INSTALL_STEPS: { num: string; title: string; desc: string; type: StepType; copyText?: string }[] = [
-  { num: '01', title: 'ดาวน์โหลด Extension',  desc: 'กดปุ่มด้านล่างเพื่อดาวน์โหลดไฟล์ extension.zip',                          type: 'download' },
-  { num: '02', title: 'ไปที่หน้า Extensions', desc: 'คัดลอก chrome://extensions ไปวางในช่อง address bar แล้วเปิด Developer Mode ขวาบน', type: 'copy', copyText: 'chrome://extensions' },
-  { num: '03', title: 'ลากไฟล์ลงมาวาง',         desc: 'ลากไฟล์ extension.zip ที่ดาวน์โหลดมา วางลงในหน้า Extensions ได้ทันที',           type: 'text' },
+  { num: '01', title: 'ดาวน์โหลด Extension',  desc: 'กดปุ่มด้านล่างเพื่อดาวน์โหลดไฟล์ extension.zip',                                      type: 'download' },
+  { num: '02', title: 'ไปที่หน้า Extensions', desc: 'คัดลอก chrome://extensions ไปวางในช่อง address bar แล้วเปิด Developer Mode ขวาบน',     type: 'copy', copyText: 'chrome://extensions' },
+  { num: '03', title: 'ลากไฟล์ลงมาวาง',       desc: 'ลากไฟล์ extension.zip ที่ดาวน์โหลดมา วางลงในหน้า Extensions ได้ทันที',                 type: 'text' },
 ]
 
 const CARD_ITEMS = [
   'ใช้งานฟรี 100%',
   'เน้นความเป็นส่วนตัว (Zero Data Collection)',
-  'เชื่อมต่อผ่านเซสชัน Instagram โดยตรง'
+  'เชื่อมต่อผ่านเซสชัน Instagram โดยตรง',
 ]
 
-
-// ── Mockup Component ─────────────────────────────────────────────────────────
+// ── Mockup Component ──────────────────────────────────────────────────────────
 import { memo } from 'react'
 const MockupPreview = memo(() => {
   const stats = [
-    { v: '1,284', l: 'Followers', c: '' },
-    { v: '892',   l: 'Following',  c: '' },
-    { v: '47',    l: 'ไม่ follow กลับ', c: 'red' },
-    { v: '239',   l: 'ฉันไม่ follow กลับ', c: 'purple' },
+    { v: '1,284', l: 'Followers',          c: ''       },
+    { v: '892',   l: 'Following',           c: ''       },
+    { v: '47',    l: 'ไม่ follow กลับ',     c: 'red'    },
+    { v: '239',   l: 'ฉันไม่ follow กลับ',  c: 'purple' },
   ]
-
   return (
     <div className="hero-mockup" aria-hidden="true">
       <div className="mockup-browser">
@@ -125,29 +123,17 @@ const MockupPreview = memo(() => {
         </div>
         <div className="mockup-panel">
           <div className="mockup-panel-head">
-            <div className="mockup-panel-brand">
-              <IGLogo size={20} />
-              <span>Follower Tracker</span>
-            </div>
+            <div className="mockup-panel-brand"><IGLogo size={20} /><span>Follower Tracker</span></div>
             <div className="mockup-panel-actions">
               <div className="mockup-icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M15 3v18"/></svg></div>
               <div className="mockup-icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></div>
-              <div className="mockup-icon-btn">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" d="M6 6l12 12M6 18L18 6"/>
-                </svg>
-              </div>
+              <div className="mockup-icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" d="M6 6l12 12M6 18L18 6"/></svg></div>
             </div>
           </div>
-
           <div className="mockup-search">
-            <div className="mockup-input">
-              <span>@&nbsp;</span>
-              <div className="mockup-placeholder">your_username...</div>
-            </div>
+            <div className="mockup-input"><span>@&nbsp;</span><div className="mockup-placeholder">your_username...</div></div>
             <div className="mockup-btn">ตรวจสอบ</div>
           </div>
-
           <div className="mockup-stats">
             {stats.map(s => (
               <div className={`mockup-stat${s.c ? ` mockup-stat--${s.c}` : ''}`} key={s.l}>
@@ -156,17 +142,15 @@ const MockupPreview = memo(() => {
               </div>
             ))}
           </div>
-
           <div className="mockup-tabs">
             <span className="mockup-tab mockup-tab--on">ไม่ follow กลับ</span>
             <span className="mockup-tab">ฉันไม่ follow กลับ</span>
           </div>
-
           <div className="mockup-user-list">
             {[
               { id: 'design_inspire', name: 'Design Daily', g: 'gradient-1' },
               { id: 'tech_minimal',   name: 'Tech Review',  g: 'gradient-2' },
-              { id: 'travel_vibe',    name: 'Nomad Soul',   g: 'gradient-3' }
+              { id: 'travel_vibe',    name: 'Nomad Soul',   g: 'gradient-3' },
             ].map(u => (
               <div className="mockup-user" key={u.id}>
                 <div className={`mockup-avatar ${u.g}`} />
@@ -194,46 +178,32 @@ export default function App() {
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 40)
     window.addEventListener('scroll', fn, { passive: true })
-    
-    // Fetch version mapping
     fetch('/version.json')
       .then(r => r.json())
       .then(data => {
         if (data.version) setSiteVersion(data.version)
         if (data.date) {
           const d = new Date(data.date)
-          setLastUpdate(d.toLocaleDateString('th-TH', { 
-            day: 'numeric', 
-            month: 'short', 
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-          }))
+          setLastUpdate(d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }))
         }
       })
       .catch(() => {})
-
     return () => window.removeEventListener('scroll', fn)
   }, [])
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text)
-    setCopied(true)
-    setShowToast(true)
-    setTimeout(() => {
-      setCopied(false)
-      setShowToast(false)
-    }, 3000)
+    setCopied(true); setShowToast(true)
+    setTimeout(() => { setCopied(false); setShowToast(false) }, 3000)
   }
 
   return (
     <div className="page">
-      {/* Professional Toast Notification */}
+
+      {/* Toast */}
       <div className={`igt-toast-wrap ${showToast ? 'igt-toast--show' : ''}`}>
         <div className="igt-toast">
-          <div className="igt-toast-icon">
-            <IconCheckSm />
-          </div>
+          <div className="igt-toast-icon"><IconCheckSm /></div>
           <div className="igt-toast-content">
             <div className="igt-toast-title">คัดลอกสำเร็จ!</div>
             <div className="igt-toast-desc">นำไปวางในช่อง URL ด้านบนได้เลย</div>
@@ -244,10 +214,7 @@ export default function App() {
       {/* Navbar */}
       <nav className={`navbar${scrolled ? ' navbar--scrolled' : ''}`} aria-label="Main navigation">
         <div className="navbar-inner">
-          <div className="navbar-brand">
-            <IGLogo size={30} />
-            <span className="navbar-name">IG Follower Tracker</span>
-          </div>
+          <div className="navbar-brand"><IGLogo size={30} /><span className="navbar-name">IG Follower Tracker</span></div>
           <a className="navbar-cta" href="#install">ติดตั้งฟรี</a>
         </div>
       </nav>
@@ -261,24 +228,13 @@ export default function App() {
             <span className="hero-badge"><ChromeLogo size={13} />Chrome Extension — ฟรี</span>
             {lastUpdate && <span className="hero-update-tag">อัปเดตเมื่อ: {lastUpdate}</span>}
           </div>
-          <h1 className="hero-title">
-            รู้ทันว่าใคร<br />
-            <span className="hero-gradient">ไม่ follow กลับ</span>
-          </h1>
-          <p className="hero-desc">
-            ตรวจสอบ followers และ following บน Instagram ได้ทันที
-            ไม่ต้องกรอก password ไม่ต้องใช้ third-party app
-            ข้อมูลอยู่ในเบราว์เซอร์ของคุณเท่านั้น
-          </p>
+          <h1 className="hero-title">รู้ทันว่าใคร<br /><span className="hero-gradient">ไม่ follow กลับ</span></h1>
+          <p className="hero-desc">ตรวจสอบ followers และ following บน Instagram ได้ทันที ไม่ต้องกรอก password ไม่ต้องใช้ third-party app ข้อมูลอยู่ในเบราว์เซอร์ของคุณเท่านั้น</p>
           <div className="hero-actions">
             <a className="btn-primary" href="#install"><ChromeLogo size={17} />ติดตั้ง Extension ฟรี</a>
-            <a className="btn-ghost" href="#how-it-works">
-              ดูวิธีใช้งาน
-              <span className="btn-ghost-arrow"><IconArrowDown /></span>
-            </a>
+            <a className="btn-ghost" href="#how-it-works">ดูวิธีใช้งาน<span className="btn-ghost-arrow"><IconArrowDown /></span></a>
           </div>
         </div>
-
         <MockupPreview />
       </header>
 
@@ -335,19 +291,13 @@ export default function App() {
                     <h3>{step.title}</h3>
                     <p>{step.desc}</p>
                     {step.type === 'download' && (
-                      <a className="btn-dl" href="/extension.zip" download>
-                        <IconDownload />ดาวน์โหลด extension.zip
-                      </a>
+                      <a className="btn-dl" href="/extension.zip" download><IconDownload />ดาวน์โหลด extension.zip</a>
                     )}
                     {step.type === 'copy' && step.copyText && (
                       <div className="code-row-wrap">
                         <div className="code-row">
                           <code>{step.copyText}</code>
-                          <button
-                            className={`copy-btn${copied ? ' copy-btn--done' : ''}`}
-                            onClick={() => handleCopy(step.copyText!)}
-                            aria-label={copied ? 'คัดลอกแล้ว' : 'คัดลอก'}
-                          >
+                          <button className={`copy-btn${copied ? ' copy-btn--done' : ''}`} onClick={() => handleCopy(step.copyText!)} aria-label={copied ? 'คัดลอกแล้ว' : 'คัดลอก'}>
                             <IconCopy done={copied} />{copied ? 'คัดลอกแล้ว' : 'คัดลอก'}
                           </button>
                         </div>
@@ -362,14 +312,8 @@ export default function App() {
               <h3>Instagram Follower Tracker</h3>
               <p>Chrome Extension v{siteVersion}</p>
               {lastUpdate && <p className="inst-card-update">อัปเดตล่าสุด: {lastUpdate}</p>}
-              <ul>
-                {CARD_ITEMS.map(t => (
-                  <li key={t}><span className="check-wrap" aria-hidden="true"><IconCheckSm /></span>{t}</li>
-                ))}
-              </ul>
-              <a className="btn-card-dl" href="/extension.zip" download>
-                <IconDownload />ดาวน์โหลดเลย
-              </a>
+              <ul>{CARD_ITEMS.map(t => (<li key={t}><span className="check-wrap" aria-hidden="true"><IconCheckSm /></span>{t}</li>))}</ul>
+              <a className="btn-card-dl" href="/extension.zip" download><IconDownload />ดาวน์โหลดเลย</a>
             </div>
           </div>
         </div>

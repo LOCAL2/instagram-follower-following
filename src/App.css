@@ -436,3 +436,160 @@
 }
 .igt-toast-title { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 2px; }
 .igt-toast-desc { font-size: 13px; color: #94a3b8; white-space: nowrap; }
+
+/* ── feat-card pink (mutual feature) ── */
+.feat-card--pink:hover { border-color: rgba(236,72,153,.5); box-shadow: 0 4px 24px rgba(236,72,153,.12); }
+.feat-card--pink .feat-icon { background: rgba(236,72,153,.15); color: #f472b6; }
+
+/* ── Mutual First Section ── */
+.sec-mutual { background: var(--bg-alt); }
+
+.mutual-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+/* Demo preview panel */
+.mutual-preview {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: var(--sh-lg), 0 0 60px rgba(236,72,153,.06);
+}
+
+.mutual-list-header {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 18px;
+  background: rgba(255,255,255,.03);
+  border-bottom: 1px solid var(--border);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.mutual-list { padding: 8px; display: flex; flex-direction: column; gap: 2px; }
+
+.mutual-row {
+  display: grid;
+  grid-template-columns: 36px 32px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 10px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  transition: background var(--t1), border-color var(--t1);
+  animation: igt-fade-in 0.3s ease both;
+  cursor: default;
+}
+.mutual-row:hover {
+  background: rgba(255,255,255,.04);
+  border-color: var(--border);
+}
+
+.mutual-rank {
+  font-size: 11px;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.mutual-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.mutual-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.mutual-uname {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mutual-fname {
+  font-size: 10px;
+  color: var(--text-3);
+}
+
+.mutual-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: rgba(236,72,153,.12);
+  border: 1px solid rgba(236,72,153,.25);
+  border-radius: 99px;
+  font-size: 9px;
+  font-weight: 700;
+  color: #f472b6;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Explanation side */
+.mutual-explain {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.mutual-explain-item {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.mutual-explain-num {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(236,72,153,.12);
+  border: 1px solid rgba(236,72,153,.25);
+  color: #f472b6;
+  font-size: 11px;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mutual-explain-item h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.mutual-explain-item p {
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.65;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .mutual-layout { grid-template-columns: 1fr; gap: 32px; }
+  .mutual-preview { max-width: 480px; margin: 0 auto; width: 100%; }
+}
+@media (max-width: 640px) {
+  .mutual-layout { gap: 24px; }
+  .mutual-row { grid-template-columns: 28px 28px 1fr auto; gap: 8px; padding: 8px; }
+}

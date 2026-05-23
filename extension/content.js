@@ -99,7 +99,7 @@
     const local = chrome.runtime.getManifest().version
     const sources = [
       `https://raw.githubusercontent.com/LOCAL2/instagram-follower-following/main/public/version.json?t=${Date.now()}`,
-      `https://instagram-follower-tracker.vercel.app/version.json?t=${Date.now()}`
+      `https://instagram-follower-following-pi.vercel.app/version.json?t=${Date.now()}`
     ]
 
     for (const url of sources) {
@@ -148,7 +148,7 @@
           </svg>
           มีเวอร์ชันใหม่ให้ใช้งาน (v${ver})
         </div>
-        <a href="https://instagram-follower-tracker.vercel.app/#install" target="_blank" class="igt-update-btn">อัปเดตเลย</a>
+        <a href="https://instagram-follower-following-pi.vercel.app/#install" target="_blank" class="igt-update-btn">อัปเดตเลย</a>
       </div>
     `
     wrap.hidden = false
